@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:17.2
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: kutaibaAlnizaemy
+      POSTGRES_USER: postgres
+      POSTGRES_DB: nest-template
+    volumes:
+      - pgstore:/var/lib/postgresql/repository
+
+volumes:
+  pgstore:

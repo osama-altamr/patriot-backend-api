@@ -46,7 +46,7 @@ lerna-debug.log*
 .temp
 .tmp
 
-# Runtime data
+# Runtime repository
 pids
 *.pid
 *.seed
