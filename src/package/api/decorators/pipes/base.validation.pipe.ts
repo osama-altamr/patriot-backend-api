@@ -1,7 +1,7 @@
 import { ArgumentMetadata, BadRequestException, PipeTransform } from '@nestjs/common';
 import { ZodError, ZodSchema } from 'zod';
 
-export abstract class BaseValidationPipe<T> implements PipeTransform {
+export abstract class BaseValidationPipe<T = any> implements PipeTransform {
 
   protected constructor(private zSchema: ZodSchema) {
   }

@@ -8,9 +8,20 @@ export class User {
   @Column()
   firstName: string;
 
-  @Column()
+  @Column({type: "text"})
   lastName: string;
+
+  @Column({type: "text", default: "user"})
+  role: string;
 
   @Column({ default: true })
   isActive: boolean;
+}
+
+export abstract class IUser
+{
+  role: string 
+  firstName: string
+  lastName: string
+  id: string
 }

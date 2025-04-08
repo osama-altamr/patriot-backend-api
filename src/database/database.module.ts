@@ -15,7 +15,7 @@ const ORMModule = TypeOrmModule.forRootAsync({
       password: envService.get("database.password"),
       database: envService.get(("database.name")),
       synchronize: true,
-      entities: [__dirname + './**/*.entity{.ts,.js}'],
+      entities: [__dirname + './../**/*.entity{.ts,.js}'],
       logging: process.env.NODE_ENV !== 'production',
       migrations: [__dirname + './migrations/*{.ts,.js}'],
 
