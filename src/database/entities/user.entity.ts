@@ -16,6 +16,7 @@ export class User {
 
   @Column({ default: true })
   isActive: boolean;
+
 }
 
 export abstract class IUser
