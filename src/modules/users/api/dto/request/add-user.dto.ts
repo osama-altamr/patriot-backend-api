@@ -1,5 +1,5 @@
-import { IUser, User } from "src/database";
+import { IUser } from "src/database";
 
-export class AddUserDto extends User{
+export class AddUserDto extends IUser {
 
 }

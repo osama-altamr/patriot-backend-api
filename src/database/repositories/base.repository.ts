@@ -8,8 +8,16 @@ export abstract class BaseRepository<T> {
     return this.repository.find();
   }
 
-  async findOneById(id: number): Promise<T | null> {
+  async findOneById(id: string): Promise<T | null> {
     return this.repository.findOneBy({ id } as any);
+  }
+
+  async findOneBy(query: object): Promise<T | null> {
+    return await this.repository.findOne({
+      where: {
+        ...query,
+      },
+    })
   }
 
   async create(data: Partial<T> | Partial<T>[]): Promise<T | T[]> {
@@ -17,7 +25,7 @@ export abstract class BaseRepository<T> {
     return this.repository.save(entity as any);
   }
 
-  async update(id: number, data: Partial<T>): Promise<T> {
+  async update(id: string, data: Partial<T>): Promise<T> {
     await this.repository.update(id, data as any);
     return this.findOneById(id);
   }

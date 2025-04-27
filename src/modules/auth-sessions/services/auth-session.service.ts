@@ -1,0 +1,21 @@
+import { Injectable } from '@nestjs/common';
+import { IUser } from '../../../database';
+import { UserRepository } from '/users/repository/user.repository';
+
+@Injectable()
+export class AuthSessionService {
+  constructor(private readonly userRepo: UserRepository) {}
+  async login(data: Partial<IUser>): Promise<{
+    user: IUser,
+    accessToken: string
+  }> {
+    const user = await this.userRepo.findOneBy({
+      email: data.email,
+    })
+    const accessToken = ''
+    return {
+      user,
+      accessToken,
+    }
+  }
+}
