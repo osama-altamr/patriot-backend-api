@@ -1,17 +1,17 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm'
-import { IUser, User } from './user.entity'
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm'
 import { CommonEntity } from './common.entity'
+import { LocalizedString } from '@Package/api/interfaces/localized.interface'
 
 @Entity()
 export class Stage extends CommonEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
-  @Column({type: "jsonb"})
-  name: object
+  @Column({ type: "jsonb" })
+  name: LocalizedString
 
-  @Column({type: "jsonb"})
-  description?: object
+  @Column({ type: "jsonb" , nullable: true })
+  description?: LocalizedString
 
   @Column({
     type: 'varchar',
@@ -22,7 +22,7 @@ export class Stage extends CommonEntity {
 
 export abstract class IStage {
   id: string
-  name: object
-  description: object
-  imageUrl: string
+  name: LocalizedString
+  description?: LocalizedString
+  imageUrl?: string
 }

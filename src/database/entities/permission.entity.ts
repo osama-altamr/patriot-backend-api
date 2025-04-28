@@ -6,24 +6,19 @@ export class Permission {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
-  @Column({ type: 'varchar', length: 100 }) 
+  @Column({ type: 'varchar'}) 
   feature: string
 
-  @Column({ type: 'boolean', default: false }) 
+  @Column({ type: 'boolean' }) 
   write: boolean 
 
-  @Column({ type: 'boolean', default: true }) 
+  @Column({ type: 'boolean' }) 
   read: boolean 
 
-  @Column({ type: 'varchar', length: 50 }) 
+  @Column({ type: 'varchar' }) 
   accessType: string 
-
   
-  @Column({ type: 'uuid' }) 
-  userId: string
-
   @ManyToOne(() => User, (user) => user.permissions)
-  @JoinColumn({ name: 'userId' }) 
   user: User
 }
 
@@ -33,6 +28,5 @@ export abstract class IPermission {
   write: boolean 
   read: boolean  
   accessType: string 
-  userId?: string
-  user?: IUser
+  user: IUser
 }

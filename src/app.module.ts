@@ -8,7 +8,6 @@ import { RefreshTokenModule } from '/refresh-tokens/refresh-token.module'
 import { StageModule } from '/stages/stage.module'
 import { ProductModule } from '/products/product.module'
 import { ComplaintModule } from '/complaints/complaint.module'
-import { JWTModule } from '@Package/auth'
 
 
 @Module({

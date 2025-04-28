@@ -30,7 +30,7 @@ export abstract class BaseRepository<T> {
     return this.findOneById(id)
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(id: string): Promise<void> {
     await this.repository.delete(id)
   }
 }
