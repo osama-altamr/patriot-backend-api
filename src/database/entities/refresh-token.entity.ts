@@ -20,6 +20,12 @@ export class RefreshToken extends CommonEntity {
     nullable: true,
     type: 'date',
   })
+  issuedAt: Date
+
+  @Column({
+    nullable: true,
+    type: 'date',
+  })
   revokedAt?: Date | null
 
   @ManyToOne(() => User, user => user.refreshTokens)
@@ -30,6 +36,7 @@ export abstract class IRefreshToken {
   id: string
   token: string
   expiresAt: Date
+  issuedAt: Date
   revokedAt: Date
   user: User
 }

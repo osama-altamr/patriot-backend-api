@@ -8,9 +8,10 @@ import { RefreshToken } from 'src/database';
 import { RefreshTokenRepository } from './repository/refresh-token.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([RefreshToken]), UserModule],
+  imports: [TypeOrmModule.forFeature([RefreshToken])],
   providers: [RefreshTokenService, RefreshTokenRepository],
   controllers: [RefreshTokenController],
-  exports: [RefreshTokenService],
+  exports: [RefreshTokenService, RefreshTokenRepository],
 })
+
 export class RefreshTokenModule {}
