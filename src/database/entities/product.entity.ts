@@ -29,11 +29,7 @@ export class Product extends CommonEntity {
   })
   width?: number
 
-  @Column({ type: 'uuid' }) 
-  categoryId?: string
-
   @ManyToOne(() => Category, (category) => category.products)
-  @JoinColumn({ name: 'categoryId' }) 
   category: Category
 }
 

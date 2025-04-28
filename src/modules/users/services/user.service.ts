@@ -19,6 +19,7 @@ export class UserService {
   calculateExpiration (issuedAt: Date): Date {
     return addSeconds(issuedAt, +this.environmentService.get('jwt.jwtExpiredRefresh'))
   }
+  
   getAllUsers(): Promise<IUser[]> {
     return this.userRepo.findAll();
   }
@@ -33,8 +34,11 @@ export class UserService {
     return this.userRepo.findOneById(id)
   }
 
+  updateUser(id: string, updateData: Partial<IUser>): Promise<IUser> {
+    return this.userRepo.update(id, updateData)
+  }
   
-  async createUser(data: Partial<IUser>): Promise<{
+  async createUser(data: IUser): Promise<{
     user: IUser,
     accessToken: string,
     refreshToken: string
@@ -48,14 +52,14 @@ export class UserService {
       email: user.email,
       role: user.role,
     })
-    const refreshToken = await this.authService.generateAccessToken({
+    const refreshToken = await this.authService.generateRefreshToken({
       id: user.id,
       email: user.email,
       role: user.role,
     })
     const issuedAt = new Date()
 
-    this.refreshTokenRepo.create({
+    await this.refreshTokenRepo.create({
       token: refreshToken,
       issuedAt,
       expiresAt: this.calculateExpiration(issuedAt),

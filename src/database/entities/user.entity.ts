@@ -19,16 +19,16 @@ export class User extends CommonEntity {
   @Column({ type: "text" })
   password: string
 
-  @Column({ type: "text" })
+  @Column({ type: "text", nullable: true  })
   fcmToken: string
 
   @Column({ type: "text", default: UserRole.user })
   role: UserRole
 
-  @Column({ type: "varchar" })
+  @Column({ type: "varchar", nullable: true  })
   photoUrl: string
 
-  @Column({ type: "varchar" })
+  @Column({ type: "varchar", nullable: true })
   phoneNumber: string
 
   @OneToMany(() => RefreshToken, (token) => token.user)

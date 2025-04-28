@@ -7,7 +7,7 @@ export class RefreshToken extends CommonEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
-  @Column({type: "text"})
+  @Column({ type: "text" })
   token: string
 
   @Column({
