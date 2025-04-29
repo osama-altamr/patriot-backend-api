@@ -4,7 +4,7 @@ import { ComplaintStatus } from '/complaints/api/enums/complaint.enum'
 import { IUser, User } from './user.entity'
 
 @Entity()
-export class Complaint extends CommonEntity {
+export class Order extends CommonEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
@@ -30,7 +30,7 @@ export class Complaint extends CommonEntity {
    closedBy: User
 }
 
-export abstract class IComplaint {
+export abstract class IOrder {
   id: string
   description: string
   fileUrl?: string 

@@ -2,6 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMan
 import { IUser, User } from './user.entity'
 import { Product } from './product.entity'
 import { CommonEntity } from './common.entity'
+import { LocalizedString } from '@Package/api/interfaces/localized.interface'
 
 @Entity()
 export class Category extends CommonEntity {
@@ -9,10 +10,10 @@ export class Category extends CommonEntity {
   id: string
 
   @Column({type: "jsonb"})
-  name: object
+  name: LocalizedString
 
   @Column({type: "jsonb"})
-  description?: object
+  description?: LocalizedString
 
   @Column({
     type: 'varchar',
@@ -26,7 +27,7 @@ export class Category extends CommonEntity {
 
 export abstract class ICategory {
   id: string
-  name: object
-  description: object
-  imageUrl: string
+  name: LocalizedString
+  description?: LocalizedString
+  imageUrl?: string
 }

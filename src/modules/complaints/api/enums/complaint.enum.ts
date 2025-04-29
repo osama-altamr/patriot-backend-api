@@ -6,6 +6,11 @@ export const getKeysOf = <K extends string, V>(obj: { [key in K]: V }): K[] =>
     getKeysOf(obj).map((key: K) => obj[key])
 
   export enum ComplaintStatus {
+    pending = 'pending',
+    in_progress = 'in_progress',
+    resolved = 'resolved',
+    rejected = 'rejected',
+    closed = 'closed',
   }
 
 export const complaintStatusValues = getValuesOf(ComplaintStatus)
