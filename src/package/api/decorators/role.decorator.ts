@@ -1,11 +1,12 @@
-import { createParamDecorator, ExecutionContext, HttpException, HttpStatus } from '@nestjs/common';
+import { applyDecorators } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
+import { UserRoleGuard } from '@Package/auth/guards';
+import {UserRoleMetadata} from "src/package/api";
+import { UserRole } from '/users/api/enums/user.enum';
 
-export function UserRole(...roles: string[]){
-  return createParamDecorator((data: any, context: ExecutionContext)=>{
-    const req = context.switchToHttp().getRequest();
-    if(!roles.includes(req.user.role)){
-      throw new HttpException('Role Not Found', HttpStatus.NOT_FOUND);
-    }
-    return
-  })
+export function AllowRole(values: UserRole[]) {
+  return applyDecorators(
+    UserRoleMetadata(values),
+    UseGuards(UserRoleGuard),
+  );
 }

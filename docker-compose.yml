@@ -7,9 +7,9 @@ services:
     ports:
       - 5432:5432
     environment:
-      POSTGRES_PASSWORD: kutaibaAlnizaemy
+      POSTGRES_PASSWORD: password
       POSTGRES_USER: postgres
-      POSTGRES_DB: nest-template
+      POSTGRES_DB: patriot-backend-development
     volumes:
       - pgstore:/var/lib/postgresql/repository
 

@@ -1,11 +1,11 @@
 import { ArgumentMetadata, BadRequestException, Injectable, PipeTransform } from '@nestjs/common';
 import * as z from "zod"
 
-import { IPagination } from '@Package/api';
+import { PaginationRequest } from 'src/package/api';
 
 @Injectable()
 export class PaginationPipe implements PipeTransform {
-  transform(value: IPagination, metadata: ArgumentMetadata) {
+  transform(value: PaginationRequest, metadata: ArgumentMetadata) {
 
     if(Object.keys(value).length !==2) {
       return {}

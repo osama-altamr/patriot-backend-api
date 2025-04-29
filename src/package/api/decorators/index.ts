@@ -1,5 +1,5 @@
-export * from "./pagination.decorator"
-export * from "./pipes/base.validation.pipe"
+export * from "@Package/api/pipes/base.validation.pipe"
 export * from "./controller.decorator"
 export * from "./user.decorator"
 export * from "./role.decorator"
+export * from "./metdata.decorator"

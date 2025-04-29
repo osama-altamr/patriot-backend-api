@@ -1,7 +1,14 @@
 
-
-export interface IPagination {
-  skip: number;
+export class Pagination {
   take: number;
-  page: number;
+  skip: number;
+  needPagination?: boolean;
 }
+
+export class PaginationRequest {
+  page: number;
+  take: number;
+  needPagination: boolean = false;
+}
+
+export const paginationKeys: string[] = Object.keys(new PaginationRequest());

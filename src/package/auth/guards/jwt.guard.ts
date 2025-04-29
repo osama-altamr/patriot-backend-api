@@ -1,7 +1,6 @@
 import {
   ExecutionContext,
   Injectable,
-  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -13,12 +12,10 @@ export class JwtAuthGuard extends AuthGuard(StrategyConstant.jwt) {
     return super.canActivate(context);
   }
 
-  handleRequest(err: unknown, user, info) {
+  handleRequest(err, user, info) {
     if (err || !user) {
       throw err || new UnauthorizedException();
     }
-    Logger.debug({user}, 'Handle Requesstttttttttttttttt')
-    return user
+    return user;
   }
-  
 }
