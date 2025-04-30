@@ -8,6 +8,7 @@ export abstract class BaseValidationPipe<T = any> implements PipeTransform {
     const result = this.zSchema.safeParse(value);
 
     if (!result.success) {
+      console.log(result)
       throw result.error; 
     }
 

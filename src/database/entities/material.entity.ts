@@ -11,7 +11,7 @@ export class Material extends CommonEntity {
   name: object
 
   @Column({ type: 'jsonb' }) 
-  description: boolean 
+  description: object 
 
   @Column({
     type: 'varchar',

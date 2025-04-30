@@ -6,6 +6,7 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
+import { AppError } from "@Package/error";
 import { CodeErrors } from "@Package/shared";
 import { Observable } from "rxjs";
 import {CHECK_TYPES_KEY} from "src/package/api";
@@ -21,11 +22,13 @@ export class UserRoleGuard implements CanActivate {
     }>(CHECK_TYPES_KEY, context.getHandler());
 
     const { user } = context.switchToHttp().getRequest();
-
-    if (!typeHandlers.values.includes(user.type))
-      throw new HttpException(
-        { error: CodeErrors.VALIDATION_ERROR },
-        HttpStatus.UNAUTHORIZED,
+    if (!typeHandlers.values.includes(user.role))
+      throw new AppError(
+        {
+          code: CodeErrors.WRONG_ROLE,
+          message: "you are not allow to do this",
+          errorType: "USER_ROLE_ERROR"
+        }
       );
     return true;
   }
