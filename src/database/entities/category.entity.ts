@@ -9,10 +9,10 @@ export class Category extends CommonEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
-  @Column({type: "jsonb"})
+  @Column({ type: "jsonb" })
   name: LocalizedString
 
-  @Column({type: "jsonb"})
+  @Column( {type: "jsonb", nullable: true })
   description?: LocalizedString
 
   @Column({

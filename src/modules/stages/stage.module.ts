@@ -8,6 +8,7 @@ import { Stage } from 'src/database';
 @Module({
   imports: [TypeOrmModule.forFeature([Stage])],
   providers: [StageRepository, StageService],
+  controllers: [StageController],
   exports: [StageService],
 })
 export class StageModule {}

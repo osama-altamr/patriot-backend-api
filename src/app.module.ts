@@ -8,6 +8,7 @@ import { RefreshTokenModule } from '/refresh-tokens/refresh-token.module'
 import { StageModule } from '/stages/stage.module'
 import { ProductModule } from '/products/product.module'
 import { ComplaintModule } from '/complaints/complaint.module'
+import { CategoryModule } from '/categories/category.module'
 
 
 @Module({
@@ -21,6 +22,7 @@ import { ComplaintModule } from '/complaints/complaint.module'
     StageModule,
     ProductModule,
     ComplaintModule,
+    CategoryModule,
   ],
 })
 export class AppModule {}

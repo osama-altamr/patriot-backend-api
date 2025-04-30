@@ -11,7 +11,7 @@ export class Product extends CommonEntity {
   @Column({ type: 'jsonb' }) 
   name: LocalizedString
 
-  @Column({ type: 'jsonb' }) 
+  @Column({ type: 'jsonb', nullable: true }) 
   description: LocalizedString 
 
   @Column({
@@ -21,12 +21,14 @@ export class Product extends CommonEntity {
   imageUrl?: string
 
   @Column({
-   type: 'decimal'
+   type: 'decimal',
+   nullable: true
   })
   height?: number
  
   @Column({
-   type: 'decimal'
+   type: 'decimal',
+   nullable: true
   })
   width?: number
 
