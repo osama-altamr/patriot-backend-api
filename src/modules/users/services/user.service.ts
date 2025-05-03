@@ -1,4 +1,3 @@
-// users/user.service.ts
 import { Injectable, Logger } from '@nestjs/common';
 import { IUser, User } from '../../../database';
 import { UserRepository } from '/users/repository/user.repository';
@@ -14,7 +13,7 @@ export class UserService {
     private readonly userRepo: UserRepository,
     private readonly refreshTokenRepo: RefreshTokenRepository,
     private readonly authService: AuthService,
-      private readonly environmentService: EnvironmentService,
+    private readonly environmentService: EnvironmentService,
   ) {}
   calculateExpiration (issuedAt: Date): Date {
     return addSeconds(issuedAt, +this.environmentService.get('jwt.jwtExpiredRefresh'))
@@ -34,7 +33,7 @@ export class UserService {
     return this.userRepo.findOneById(id)
   }
 
-  updateUser(id: string, updateData: Partial<IUser>): Promise<IUser> {
+  updateUser(id: string, updateData: Partial<User>): Promise<IUser> {
     return this.userRepo.update(id, updateData)
   }
   
@@ -45,8 +44,6 @@ export class UserService {
   }> {
     data.password = await HashService.hashPassword(data.password)
     const user =  await this.userRepo.create(data) as User
-
-    Logger.debug({ user })
     const accessToken =  await this.authService.generateAccessToken({
       id: user.id,
       email: user.email,

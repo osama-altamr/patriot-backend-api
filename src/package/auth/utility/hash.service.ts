@@ -11,4 +11,5 @@ export class HashService {
   public static async comparePassword(plainPassword: string, hashedPassword: string) {
     return await bcrypt.compare(plainPassword, hashedPassword)
   }
+  
 }

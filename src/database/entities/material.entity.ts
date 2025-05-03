@@ -20,27 +20,32 @@ export class Material extends CommonEntity {
   imageUrl?: string
 
   @Column({
-   type: 'decimal'
+   type: 'decimal',
+   nullable: true
   })
   height?: number
  
   @Column({
-   type: 'decimal'
+   type: 'decimal',
+   nullable: true
   })
   width?: number
 
   @Column({
-    type: 'decimal'
+    type: 'decimal',
+    nullable: true
    })
    quantity?: number
 
    @Column({
-    type: 'text'
+    type: 'text',
+    nullable: true
    })
    type?: MaterialType
 
    @Column({
-    type: 'text'
+    type: 'text',
+    nullable: true
    })
    location?: string
 }

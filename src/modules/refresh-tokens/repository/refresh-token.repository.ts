@@ -12,4 +12,13 @@ export class RefreshTokenRepository extends BaseRepository<RefreshToken> {
   ) {
     super(repository);
   }
+  
+  async findOneByToken(query: object): Promise<RefreshToken | null> {
+    return await this.repository.findOne({
+      where: {
+        ...query,
+      },
+      relations: ['user'],
+    })
+  }
 }

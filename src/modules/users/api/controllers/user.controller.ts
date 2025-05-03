@@ -3,7 +3,12 @@ import { AddUserDto } from "../dto/request/add-user.dto";
 import { AddUserValidation } from "../validation/add-user.pipe";
 import { UserService } from "/users/services/user.service";
 import { UpdateUserDto } from "../dto/request/update-user.dto";
-import { UpdateUserValidation } from "../validation/update-user.pipe";
+import { UpdateUserForAdminValidation, UpdateUserValidation } from "../validation/update-user.pipe";
+import { JwtAuthGuard } from "@Package/auth";
+import { UserRoleGuard } from "@Package/auth/guards";
+import { CurrentUser, UserRoleMetadata } from "@Package/api";
+import { UserRole } from "../enums/user.enum";
+import { User } from "src/database";
 
 @Controller("users")
 export class UserController {
@@ -17,22 +22,29 @@ export class UserController {
     }
 
     @Get()
+    @UserRoleMetadata([UserRole.admin])
+    @UseGuards(JwtAuthGuard, UserRoleGuard)
     async getAll(){
         return await this.userService.getAllUsers()
     }
 
     @Get('/me')
-    async getMe(idParam: string){
-        return await this.userService.getMe(idParam)
+    @UseGuards(JwtAuthGuard)
+    async getMe(@CurrentUser() user: User){
+        console.log(user)
+        return await this.userService.getMe(user.id)
     }
     
     @Patch('/me')
-    async updateMe(@Param('id') idParam: string, @Body(UpdateUserValidation) updateData: UpdateUserDto){
-        return await this.userService.updateUser(idParam, updateData)
+    @UseGuards(JwtAuthGuard)
+    async updateMe(@CurrentUser() user: User, @Body(UpdateUserValidation) updateData: UpdateUserDto){
+        return await this.userService.updateUser(user.id, updateData)
     }
 
     @Patch(':id')
-    async update(@Param('id') idParam: string, @Body(UpdateUserValidation) updateData: UpdateUserDto){
+    @UserRoleMetadata([UserRole.admin])
+    @UseGuards(JwtAuthGuard, UserRoleGuard)
+    async update(@Param('id') idParam: string, @Body(UpdateUserForAdminValidation) updateData: UpdateUserDto){
         return await this.userService.updateUser(idParam, updateData)
     }
  

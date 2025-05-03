@@ -22,6 +22,9 @@ export class UserRoleGuard implements CanActivate {
     }>(CHECK_TYPES_KEY, context.getHandler());
 
     const { user } = context.switchToHttp().getRequest();
+    console.log(user)
+    console.log('CHECK_TYPES_KEY', CHECK_TYPES_KEY)
+
     if (!typeHandlers.values.includes(user.role))
       throw new AppError(
         {

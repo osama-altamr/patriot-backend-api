@@ -1,6 +1,6 @@
 import { BaseValidationPipe } from '@Package/api';
 import { string, object } from 'zod';
-import { LoginDto } from '../dto/request/auth-session.dto';
+import { LoginDto } from '../dto/request/login.dto';
 
 export class LoginValidation extends BaseValidationPipe<LoginDto> {
   constructor() {
