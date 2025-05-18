@@ -4,11 +4,14 @@ import { MaterialController } from './api/controllers/material.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Material } from 'src/database';
 import { MaterialRepository } from './repository/material.repository';
+import { MaterialError } from './services/material.error';
+import { PassportModule } from '@nestjs/passport';
+import { JWTStrategy } from '@Package/auth/passport/strategy';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Material])],
-  providers: [MaterialService, MaterialRepository],
+  imports: [TypeOrmModule.forFeature([Material]), PassportModule.register({ defaultStrategy: 'jwt' })],
+  providers: [MaterialService, MaterialRepository, MaterialError, JWTStrategy],
   controllers: [MaterialController],
-  exports: [MaterialService],
+  exports: [MaterialService, JWTStrategy, PassportModule],
 })
 export class MaterialModule {}

@@ -1,6 +1,7 @@
 import { BaseValidationPipe } from '@Package/api'
-import { object, string } from 'zod'
+import { nativeEnum, object, string } from 'zod'
 import { AddUserDto } from '../dto/request/add-user.dto'
+import { UserRole } from '../enums/user.enum'
 
 
 export class UpdateUserValidation extends BaseValidationPipe<AddUserDto> {
@@ -8,10 +9,24 @@ export class UpdateUserValidation extends BaseValidationPipe<AddUserDto> {
     const schema = object({
       name: string().optional(),
         email: string().email().optional(),
+        photoUrl:  string().optional(),
+        phoneNumber:  string().optional(),
+        fcmToken: string().optional(),
+    })
+    super(schema)
+  }
+}
+
+export class UpdateUserForAdminValidation extends BaseValidationPipe<AddUserDto> {
+  constructor() {
+    const schema = object({
+        name: string().optional(),
+        email: string().email().optional(),
         password: string().optional(),
         photoUrl:  string().optional(),
         phoneNumber:  string().optional(),
         fcmToken: string().optional(),
+        role: nativeEnum(UserRole)
     })
     super(schema)
   }

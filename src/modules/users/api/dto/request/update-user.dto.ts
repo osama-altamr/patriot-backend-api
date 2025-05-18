@@ -1,7 +1,6 @@
-import { IUser } from "src/database";
+import { IUser, User } from "src/database";
 import { PartialType } from "@nestjs/swagger"
-import { AddUserDto } from "./add-user.dto";
 
-export class UpdateUserDto extends PartialType(AddUserDto) {
+export class UpdateUserDto extends PartialType(User) {
 
 }

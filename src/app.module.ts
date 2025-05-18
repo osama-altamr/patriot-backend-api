@@ -8,6 +8,7 @@ import { RefreshTokenModule } from '/refresh-tokens/refresh-token.module'
 import { StageModule } from '/stages/stage.module'
 import { ProductModule } from '/products/product.module'
 import { ComplaintModule } from '/complaints/complaint.module'
+import { MaterialModule } from '/materials/material.module'
 import { CategoryModule } from '/categories/category.module'
 
 
@@ -22,6 +23,7 @@ import { CategoryModule } from '/categories/category.module'
     StageModule,
     ProductModule,
     ComplaintModule,
+    MaterialModule,
     CategoryModule,
   ],
 })
