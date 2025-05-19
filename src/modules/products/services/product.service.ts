@@ -25,7 +25,7 @@ export class ProductService {
   }
 
   async getAllProducts(): Promise<Product[]> {
-    return this.productRepo.findAll()
+    return this.productRepo.findAll({})
   }
 
   async getProduct(id: string): Promise<Product | null> {

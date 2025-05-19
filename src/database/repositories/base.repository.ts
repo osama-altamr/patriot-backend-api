@@ -1,11 +1,11 @@
 // common/repositories/base.repository.ts
-import { Repository } from 'typeorm'
+import { FindManyOptions, Repository } from 'typeorm'
 
 export abstract class BaseRepository<T> {
   protected constructor(protected readonly repository: Repository<T>) {}
 
-  async findAll(): Promise<T[]> {
-    return this.repository.find()
+  async findAll({ filter }: { filter?: FindManyOptions<T> }): Promise<T[]> {
+    return this.repository.find(filter)
   }
 
   async findOneById(id: string): Promise<T | null> {
