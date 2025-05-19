@@ -1,8 +1,6 @@
 import { Logger, Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { EnvironmentService } from '@Package/config';
-import { DataSource } from 'typeorm';
-import { User } from './entities';
 
 const ORMModule = TypeOrmModule.forRootAsync({
   inject: [EnvironmentService],

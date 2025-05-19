@@ -5,10 +5,13 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "engines":{
+    "node": "20"
+  },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
+    "start": "NODE_ENV=development nest start",
     "start:dev": "NODE_ENV=development nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
@@ -31,7 +34,9 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.1.5",
     "@nestjs/typeorm": "^11.0.0",
+    "@types/crypto-js": "^4.2.2",
     "bcryptjs": "^3.0.2",
+    "crypto": "^1.0.1",
     "date-fns": "^4.1.0",
     "joi": "^17.13.3",
     "morgan": "^1.10.0",
