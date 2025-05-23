@@ -6,6 +6,8 @@ import { Complaint, User } from "src/database"
 import { AuthGuard } from '@nestjs/passport'
 import { CreateComplaintValidation } from "../validation/create-complaint.pipe";
 import { UpdateComplaintValidation } from "../validation/update-complaint.pipe";
+import { CurrentUser } from "@Package/api";
+import { JwtAuthGuard } from "@Package/auth";
 
 @Controller("complaints")
 export class ComplaintController {
@@ -13,12 +15,12 @@ export class ComplaintController {
 
     @Post()
     @HttpCode(HttpStatus.CREATED)
+    @UseGuards(JwtAuthGuard)
     async createComplaint(
         @Body(CreateComplaintValidation
         ) complaintData: CreateComplaintDto,
-        @Req() req
+        @CurrentUser() user: User
     ): Promise<Complaint | Complaint[]> {
-        const user = req.user as User
         return await this.complaintService.createComplaint(complaintData, user);
     }
 
@@ -33,12 +35,12 @@ export class ComplaintController {
     }
 
     @Patch(':id')
+    @UseGuards(JwtAuthGuard)
     async update(
         @Param('id') idParam: string,
         @Body(UpdateComplaintValidation) updateData: UpdateComplaintDto,
-        @Req() req
+        @CurrentUser() user: User
     ): Promise<Complaint> {
-        const user = req.user as User
         return await this.complaintService.updateComplaint(idParam, updateData, user);
     }
 

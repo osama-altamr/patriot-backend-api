@@ -4,6 +4,8 @@ import { RefreshToken } from './refresh-token.entity'
 import { Permission } from './permission.entity'
 import { CommonEntity } from './common.entity'
 import { Complaint } from './complaint.entity'
+import { Notification } from './notification.entity'
+
 
 @Entity()
 export class User extends CommonEntity {
@@ -18,6 +20,13 @@ export class User extends CommonEntity {
 
   @Column({ type: "text" })
   password: string
+
+
+  @Column({ nullable: true })
+  resetPasswordCode: string | null;
+
+  @Column({ nullable: true })
+  resetPasswordCodeExpiresAt: Date | null;
 
   @Column({ type: "text", nullable: true  })
   fcmToken: string
@@ -43,6 +52,9 @@ export class User extends CommonEntity {
   // if role => Admin
   @OneToMany(() => Complaint, (complaint) => complaint.closedBy)
   closedComplaints: Complaint[]
+
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notifications: Notification[]
 
   @Column({ default: true })
   isActive: boolean

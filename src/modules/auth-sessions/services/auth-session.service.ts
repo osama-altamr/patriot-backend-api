@@ -54,7 +54,6 @@ export class AuthSessionService {
       user
     })
     
-    console
     return {
       user,
       accessToken,

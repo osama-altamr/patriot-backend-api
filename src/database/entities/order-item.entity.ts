@@ -1,14 +1,15 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany, OneToOne } from 'typeorm'
 import { CommonEntity } from './common.entity'
 import { Order } from './order.entity'
 import { Category } from './category.entity'
 import { Product } from './product.entity'
+import { Stage } from './stage.entity'
+import { OrderItemAction } from './order-item-action.entity'
 
 export enum OrderItemStatus {
-    PENDING = 'pending',
-    IN_PROGRESS = 'in_progress',
-    COMPLETED = 'completed',
-    CANCELLED = 'cancelled'
+    pending = 'pending',
+    inProgress = 'inProgress',
+    completed = 'completed'
 }
 
 @Entity('order_items')
@@ -33,19 +34,32 @@ export class OrderItem extends CommonEntity {
     @Column({
         type: 'enum',
         enum: OrderItemStatus,
-        default: OrderItemStatus.PENDING
+        default: OrderItemStatus.pending
     })
     status: OrderItemStatus
 
-    @Column({ type: 'varchar', length: 60 })
+    @Column({ type: 'text', nullable: true })
     qrCode: string
 
     @ManyToOne(() => Product)
     @JoinColumn({ name: 'product_id' })
     product: Product
+    
+    @OneToMany(() => Stage, (stage) => stage.orderItem, {
+        cascade: true,
+        eager: true,
+      })
+    stages: Stage[];
+
+    @ManyToOne(()=> Stage)
+    @JoinColumn({ name: 'current_stage_id' })
+    currentStage: Stage
 
     @Column({ type: 'int' })
     price: number
+
+    @OneToMany(() => OrderItemAction, (orderItemAction) => orderItemAction.orderItem)
+    orderItemActions: OrderItemAction[]
 }
 
 export abstract class IOrderItem {

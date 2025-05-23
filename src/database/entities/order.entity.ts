@@ -4,18 +4,25 @@ import { IUser, User } from './user.entity'
 import { OrderItem } from './order-item.entity'
 
 export enum OrderStatus {
-  PENDING = 'pending',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
+  pending = 'pending',
+  inProgress = 'in-progress',
+  completed = 'completed',
+  cancelled = 'cancelled',
+  delivered = 'delivered',
 }
 
 export enum OrderPriority {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  URGENT = 'urgent'
+  low = 'low',
+  medium = 'medium',
+  high = 'high',
+  urgent = 'urgent'
 }
+
+export enum OrderType {
+  custom = 'custom',
+  
+}
+
 
 @Entity()
 export class Order extends CommonEntity {
@@ -25,7 +32,7 @@ export class Order extends CommonEntity {
   @Column({
     type: 'enum',
     enum: OrderPriority,
-    default: OrderPriority.MEDIUM
+    default: OrderPriority.medium
   })
   priority: OrderPriority
 
@@ -38,13 +45,17 @@ export class Order extends CommonEntity {
   @Column({
     type: 'enum',
     enum: OrderStatus,
-    default: OrderStatus.PENDING
+    default: OrderStatus.pending
   })
   status: OrderStatus
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
   user: User
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'driver_id' })
+  driver: User
 
   @OneToMany(() => OrderItem, orderItem => orderItem.order)
   items: OrderItem[]
@@ -57,4 +68,5 @@ export abstract class IOrder {
   status: OrderStatus
   user?: IUser
   items?: OrderItem[]
+  driver?: IUser
 }

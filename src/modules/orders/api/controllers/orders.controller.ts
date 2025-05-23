@@ -8,53 +8,82 @@ import { AuthControllerWeb, CurrentUser } from '@Package/api'
 import { CreateOrderValidation } from '../validations/create-order.dto'
 import { GetAllOrdersDto } from '../dto/get-all.dto'
 import { parseQuery } from '@Package/api/functions'
+import { VerifyOrderValidation } from '../validations/verify-code.dto'
+import { VerifyOrderCodeDto } from '../dto/verify-order-code.dto'
+import { OrderCodeService } from '/orders/services/order-code.service'
+import { UpdateOrderItemDto } from '../dto/update-order-item.dto'
+import { OrderItemService } from '/orders/services/order-items.service'
 
 
 @AuthControllerWeb({prefix: "orders"})
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(
+    private readonly ordersService: OrdersService,
+    private readonly orderCodeService: OrderCodeService,
+    private readonly orderItemService: OrderItemService,
+  ) {}
 
   @Post()
-  create(
+  async create(
     @Body(CreateOrderValidation) createOrderDto: CreateOrderDto,
-    @CurrentUser() user: any
   ): Promise<Order> {
-    return this.ordersService.create(createOrderDto, user)
+    return await this.ordersService.create(createOrderDto)
   }
 
   @Get()
-  findAll(
+  async findAll(
     @Query() query: GetAllOrdersDto
   ): Promise<Order[]> {
     const q = parseQuery(query)
-    return this.ordersService.findAll(q.myQuery, q.pagination)
+    return await this.ordersService.findAll(q.myQuery, q.pagination)
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Order> {
-    return this.ordersService.findOne(id)
-  }orderItemData
+  async findOne(@Param('id') id: string): Promise<Order> {
+    return await this.ordersService.findOne(id)
+  }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto): Promise<Order> {
-    return this.ordersService.update(id, updateOrderDto)
+  async update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto): Promise<Order> {
+    return await this.ordersService.update(id, updateOrderDto)
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<void> {
-    return this.ordersService.remove(id)
+  async remove(@Param('id') id: string): Promise<void> {
+    return await this.ordersService.remove(id)
   }
 
-  // @Post(':id/items')
+  @Get(':id/items')
+  async getOrderItems(@Param('id') id: string): Promise<OrderItem[]> {
+    return await this.ordersService.getOrderItems(id)
+  }
+
+  @Post(':id/verify-code')
+  async verifyOrderCode(@Param('id') id: string, @Body(VerifyOrderValidation) orderCodeData:  VerifyOrderCodeDto): Promise<{ isValid: boolean, message?: string }> {
+    const order = await this.ordersService.findOne(id)
+
+    return await this.orderCodeService.verifyCode({ 
+      code: orderCodeData.code,
+      orderId:  order.id
+     })
+  }
+
+
+  @Patch(':orderId/items/:itemId')
+  createOrderItem(
+    @Param('orderId') orderId: string,
+    @Param('itemId') itemId: string,
+    @Body() orderItemData: UpdateOrderItemDto
+  ): Promise<OrderItem> {
+    return this.orderItemService.updateOrderItem(orderId,
+      itemId, orderItemData)
+  }
+
+    // @Post(':id/items')
   // createOrderItem(
   //   @Param('id') id: string,
   //   @Body() orderItemData: Partial<OrderItem>
   // ): Promise<OrderItem> {
   //   return this.ordersService.createOrderItem(id, orderItemData)
   // }
-
-  @Get(':id/items')
-  getOrderItems(@Param('id') id: string): Promise<OrderItem[]> {
-    return this.ordersService.getOrderItems(id)
-  }
 } 

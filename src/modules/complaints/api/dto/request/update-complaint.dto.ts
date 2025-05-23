@@ -1,3 +1,4 @@
+import { User } from "src/database";
 import { ComplaintStatus } from "../../enums/complaint.enum";
 
 export class UpdateComplaintDto {
@@ -5,4 +6,7 @@ export class UpdateComplaintDto {
   fileUrl?: string
   status?: ComplaintStatus
   closedById?: string | null
+  closedBy?: User
+  type?: string
+  location?: string
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpStatus, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { AddUserDto } from "../dto/request/add-user.dto";
 import { AddUserValidation } from "../validation/add-user.pipe";
 import { UserService } from "/users/services/user.service";
@@ -9,6 +9,13 @@ import { UserRoleGuard } from "@Package/auth/guards";
 import { CurrentUser, UserRoleMetadata } from "@Package/api";
 import { UserRole } from "../enums/user.enum";
 import { User } from "src/database";
+import { ForgotPasswordValidation } from "../validation/forgot-password.pipe";
+import { ForgotPasswordDto } from "../dto/request/forgot-password.dto";
+import { HttpStatusCode } from "axios";
+import { ResetPasswordDto } from "../dto/request/reset-password.dto";
+import { ResetPasswordValidation } from "../validation/reset-password.pipe";
+import { UpdatePasswordValidation } from "../validation/update-password.pipe";
+import { UpdatePasswordDto } from "../dto/request/update-password.dto";
 
 @Controller("users")
 export class UserController {
@@ -22,8 +29,8 @@ export class UserController {
     }
 
     @Get()
-    @UserRoleMetadata([UserRole.admin])
-    @UseGuards(JwtAuthGuard, UserRoleGuard)
+    // @UserRoleMetadata([UserRole.admin])
+    // @UseGuards(JwtAuthGuard, UserRoleGuard)
     async getAll(){
         return await this.userService.getAllUsers()
     }
@@ -48,5 +55,23 @@ export class UserController {
         return await this.userService.updateUser(idParam, updateData)
     }
  
+
+    @Post('forgot-password')
+    async forgotPassword(@Body(ForgotPasswordValidation) reqData: ForgotPasswordDto){
+        return await this.userService.forgotPassword(reqData.email)
+    }
+ 
+    @Post('reset-password')
+    async resetPassword(@Body(ResetPasswordValidation) reqData: ResetPasswordDto){
+        return await this.userService.resetPassword(reqData)
+    }
+
+    @Post('update-password')
+    @UseGuards(JwtAuthGuard)
+    async updatePassword(
+        @CurrentUser() user: User,
+        @Body(UpdatePasswordValidation) reqData: UpdatePasswordDto){
+        return await this.userService.updatePassword(user.id,reqData)
+    }
 
 }

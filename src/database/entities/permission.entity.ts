@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm'
 import { IUser, User } from './user.entity'
+import { PermissionAccessType, PermissionFeature } from '/permissions/api/enums/permission.enum'
 
 @Entity()
 export class Permission {
@@ -24,9 +25,9 @@ export class Permission {
 
 export abstract class IPermission {
   id: string
-  feature: string
+  feature: PermissionFeature
   write: boolean 
   read: boolean  
-  accessType: string 
+  accessType: PermissionAccessType
   user: IUser
 }

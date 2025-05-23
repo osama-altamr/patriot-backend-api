@@ -12,7 +12,7 @@ export class StageService {
   }
 
   async getAllStages(): Promise<Stage[]> {
-    return this.stageRepo.findAll();
+    return this.stageRepo.findAll({});
 
   }
 

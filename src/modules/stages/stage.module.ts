@@ -9,6 +9,6 @@ import { Stage } from 'src/database';
   imports: [TypeOrmModule.forFeature([Stage])],
   providers: [StageRepository, StageService],
   controllers: [StageController],
-  exports: [StageService],
+  exports: [StageService, StageRepository],
 })
 export class StageModule {}

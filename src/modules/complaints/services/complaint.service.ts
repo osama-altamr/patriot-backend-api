@@ -4,24 +4,29 @@ import { CreateComplaintDto } from '../api/dto/request/create-complaint.dto';
 import { UpdateComplaintDto } from '../api/dto/request/update-complaint.dto';
 import { Complaint, User } from 'src/database'; // Adjust path
 import { ComplaintStatus } from '../api/enums/complaint.enum';
+import { UserRepository } from '/users/repository/user.repository';
+import { UserRole } from '/users/api/enums/user.enum';
 
 @Injectable()
 export class ComplaintService {
   constructor(
       private readonly complaintRepo: ComplaintRepository,
+      private readonly userRepo: UserRepository,
     ) {}
 
   async createComplaint(complaintData: CreateComplaintDto, requestingUser: User): Promise<Complaint | Complaint[]> {
     const complaint = new Complaint()
     complaint.description = complaintData.description;
     complaint.fileUrl = complaintData.fileUrl;
+    complaint.type = complaintData.type;
+    complaint.location = complaintData.location;
     complaint.user = requestingUser
     complaint.status = ComplaintStatus.pending
     return this.complaintRepo.create(complaint as any)
   }
 
   async getAllComplaints(): Promise<Complaint[]> {
-    return this.complaintRepo.findAll();
+    return this.complaintRepo.findAll({})
   }
 
   async getComplaint(id: string): Promise<Complaint | null> {
@@ -33,7 +38,15 @@ export class ComplaintService {
   }
 
   async updateComplaint(id: string, updateData: UpdateComplaintDto, requestingUser: User): Promise<Complaint> {
-    return await this.complaintRepo.update(id, updateData)
+    const user = await this.userRepo.findOneById(requestingUser.id)
+    if(user.role !== UserRole.user && updateData.status === ComplaintStatus.in_progress) {
+      updateData.closedBy = user
+    }
+    await this.complaintRepo.update(id, updateData);
+    const query = {
+      id
+    }
+    return this.complaintRepo.findOneByWithPop(query)
   }
 
   async deleteComplaint(id: string): Promise<void> {

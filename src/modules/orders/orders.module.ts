@@ -7,10 +7,21 @@ import { OrdersService } from './services/orders.service'
 import { OrdersRepository } from './repository/orders.repository'
 import { OrderItemRepository } from './repository/order-item.repository'
 import { ProductModule } from '../products/product.module'
+import { MailerModule } from '/mailer/mailer.module'
+import { NotificationModule } from '/notifications/notification.module'
+import { UserModule } from '/users/user.module'
+import { OrderCodeRepository } from './repository/order-code.repository'
+import { OrderCode, OrderItemAction } from 'src/database'
+import { OrderCodeService } from './services/order-code.service'
+import { QrcodeService } from './services/qrcode.service'
+import { StageModule } from '/stages/stage.module'
+import { OrderItemService } from './services/order-items.service'
+import { OrderItemActionRepository } from './repository/order-item-action.repository'
+
 @Module({
-    imports: [TypeOrmModule.forFeature([Order, OrderItem]), ProductModule],
+    imports: [MailerModule,TypeOrmModule.forFeature([Order, OrderItem, OrderCode, OrderItemAction]), ProductModule, NotificationModule, UserModule, StageModule],
     controllers: [OrdersController],
-    providers: [OrdersService, OrdersRepository, OrderItemRepository],
-    exports: [OrdersService]
+    providers: [OrdersService, OrderCodeService, OrdersRepository, OrderItemService, OrderItemActionRepository, OrderItemRepository, OrderCodeRepository, QrcodeService],
+    exports: [OrdersService, OrdersRepository, OrderCodeRepository]
 })
 export class OrdersModule { } 

@@ -11,4 +11,12 @@ export class ComplaintRepository extends BaseRepository<Complaint> {
   ) {
     super(repository);
   }
+  async findOneByWithPop(query: object) {
+    return await this.repository.findOne({
+      where: {
+        ...query,
+      },
+      relations: ['closedBy', 'user'],
+    })
+  }
 }

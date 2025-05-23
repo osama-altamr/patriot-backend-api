@@ -16,6 +16,18 @@ export class Complaint extends CommonEntity {
     nullable: true
   })
   fileUrl?: string
+  
+  @Column({
+    type: 'varchar',
+    nullable: true
+  })
+  type?: string
+
+  @Column({
+    type: 'varchar',
+    nullable: true
+  })
+  location?: string
 
    @Column({
     type: 'text',

@@ -20,6 +20,18 @@ export abstract class BaseRepository<T> {
     })
   }
 
+  async findBy(query: object): Promise<T[] | null> {
+    return await this.repository.find({
+      where: {
+        ...query,
+      },
+    })
+  }
+
+  async findByIds(ids: string[]): Promise<T[]> {
+    return this.repository.findByIds(ids);
+  }
+
   async create(data: Partial<T> | Partial<T>[]): Promise<T | T[]> {
     const entity = this.repository.create(data as any)
     return this.repository.save(entity as any)
@@ -27,10 +39,14 @@ export abstract class BaseRepository<T> {
 
   async update(id: string, data: Partial<T>): Promise<T> {
     await this.repository.update(id, data as any)
-    return this.findOneById(id)
+    return  await this.findOneById(id)
   }
 
   async delete(id: string): Promise<void> {
     await this.repository.delete(id)
+  }
+
+  async count(query?: object) {
+    return await this.repository.count(query)  
   }
 }
