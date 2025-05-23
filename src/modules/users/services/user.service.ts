@@ -9,6 +9,8 @@ import { EnvironmentService } from '@Package/config';
 import { MailerService } from '/mailer/services/mailer.service';
 import { ResetPasswordDto } from '../api/dto/request/reset-password.dto';
 import { UpdatePasswordDto } from '../api/dto/request/update-password.dto';
+import { PermissionRepository } from '/permissions/repository/permission.repository';
+import { PermissionAccessType } from '/permissions/api/enums/permission.enum';
 
 @Injectable()
 export class UserService {
@@ -79,10 +81,9 @@ export class UserService {
     const user = await this.getByEmail(email)
     const resetPasswordCode =  Math.floor(100000 + Math.random() * 900000).toString()
     const resetPasswordCodeExpiresAt = addMinutes(new Date(), 5)
-    // ENVVARIABLE 
     const dashboardUrl = 'http://localhost:3000'
 
-    const to = 'osama.altamr.sy@gmail.com'
+    const to = email
     const resetPasswordLink = `${dashboardUrl}/reset-password/?email=${user.email}&resetCode=${resetPasswordCode}`
     const emailTemplate = {
       subject: `🔐 Patriot Platform - Password Reset Request`,

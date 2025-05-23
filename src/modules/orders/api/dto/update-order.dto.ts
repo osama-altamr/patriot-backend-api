@@ -7,4 +7,6 @@ export class UpdateOrderDto {
     status?: OrderStatus
     driverId?: string
     driver?: any
+    estimatedDeliveryTime?: Date; 
+    deliveredAt?: Date;
 } 

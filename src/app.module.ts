@@ -17,6 +17,7 @@ import { NotificationModule } from '/notifications/notification.module'
 import { HomeModule } from '/home/home.module'
 import { AWSModule } from '/aws/aws.module'
 import { ProductReviewModule } from '/product-reviews/product-review.module'
+import { ReportModule } from '/reports/report.module'
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { ProductReviewModule } from '/product-reviews/product-review.module'
     HomeModule,
     AWSModule,
     ProductReviewModule,
+    ReportModule,
   ],
 })
 export class AppModule {}

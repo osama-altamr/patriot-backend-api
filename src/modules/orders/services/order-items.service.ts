@@ -12,39 +12,57 @@ import { StageRepository } from '/stages/repository/stage.repository'
 import { UpdateOrderItemDto } from '../api/dto/update-order-item.dto'
 import { OrderItemActionRepository } from '../repository/order-item-action.repository'
 import { OrderStatus } from 'src/database'
+import { CategoryRepository } from '/categories/repository/category.repository'
+import { MaterialRepository } from '/materials/repository/material.repository'
+import { PermissionService } from '/permissions/services/permission.service'
+import { NotificationRepository } from '/notifications/repository/notification.repository'
 @Injectable()
 export class OrderItemService {
     constructor(private readonly ordersRepository: OrdersRepository,
         private readonly orderItemRepository: OrderItemRepository,
+        private readonly categoryRepo: CategoryRepository,
+        private readonly materialRepo: MaterialRepository,
+        private readonly permissionService: PermissionService,
+        private readonly notificationRepo: NotificationRepository,
+
         private readonly productService: ProductService,
         private readonly userService: UserService,
         private readonly qrcodeService: QrcodeService,
         private readonly stageRepo: StageRepository,
         private readonly orderItemActionRepository: OrderItemActionRepository,
+        
     ) { }
 
 async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promise<OrderItem> {
     const product = await this.productService.getProduct(orderItemData.productId)
     await this.ordersRepository.findOneById(orderId)
     const stages = await this.stageRepo.findByIds(orderItemData.stageIds)
+    let category
+    let material
+    if(orderItemData.categoryId){
+        category= await this.categoryRepo.findOneById(orderItemData.categoryId)
+    }
+    if(orderItemData.materialId){
+        material= await this.materialRepo.findOneById(orderItemData.materialId)
+    }
     const orderItem  = await this.orderItemRepository.create({
         ...orderItemData,
         order: { id: orderId } as any,
         product: product.id,
         status: OrderItemStatus.pending,
         price: 0,
-        stages
+        stages,
+        category,
     } as any) as OrderItem
 
-
-    const qrCode = await this.qrcodeService.generateQRCode(`${orderId}|${orderItem.id}`)
+    const qrCode = await this.qrcodeService.generateQRCode(`http://locahost:3000/confirm-state?orderId=${orderId}&orderItem=${orderItem.id}`)
     const updatedOrderItem =  await this.orderItemRepository.update(orderItem.id, {
         qrCode
     })
     return updatedOrderItem
 }
 
-async updateOrderItem(orderId: string,itemId:string, orderItemData: UpdateOrderItemDto): Promise<OrderItem> {
+async updateOrderItem(orderId: string, itemId:string, orderItemData: UpdateOrderItemDto): Promise<OrderItem> {
  await this.ordersRepository.findOneById(orderId)
  
  const orderItem = await this.orderItemRepository.findOneBy({ id: itemId })
@@ -68,7 +86,6 @@ async updateOrderItem(orderId: string,itemId:string, orderItemData: UpdateOrderI
   
    let dataToUpdate: any = {}
    if(!orderItem.currentStage && orderItemData.currentStageId){
-    console.log('Inside if condition')
     await this.orderItemActionRepository.create({
         startsAt: new Date(),
         stage: { id: stage.id },
@@ -76,7 +93,6 @@ async updateOrderItem(orderId: string,itemId:string, orderItemData: UpdateOrderI
         orderItem: { id: orderItem.id }
     } as any)
     dataToUpdate.status = OrderItemStatus.inProgress
-    console.log('End If condition')
    } else {
     const currentAction = await this.orderItemActionRepository.findOneBy({
         orderItem: { id: orderItem.id },
@@ -116,7 +132,46 @@ async updateOrderItem(orderId: string,itemId:string, orderItemData: UpdateOrderI
         await this.ordersRepository.update(orderId, {
             status: OrderStatus.completed
         })
+       const drivers = await this.permissionService.getAllDrivers()
+       for(const driver of drivers) {
+        const notifications = {
+            title:  {
+                en: "Order Completed",
+                ar: "تم إكمال الطلب"
+             },
+            content: {
+                en: `Order #${order.ref} has been completed successfully`,
+                ar: `تم إكمال الطلب رقم #${order.ref} بنجاح`
+            }
+          };
+          await this.notificationRepo.create({
+            title: notifications.title,
+            content: notifications.content,
+            isSeen: false,
+            type: "order",
+            recordId: orderId,
+            user: driver,
+          });
        }
-      // Send Notification to drivers
+
+    const notifications = {
+        title:  {
+            en: "Order Completed",
+            ar: "تم إكمال الطلب"
+         },
+        content: {
+            en: `Order #${order.ref} has been completed successfully`,
+            ar: `تم إكمال الطلب رقم #${order.ref} بنجاح`
+        }
+      };
+      await this.notificationRepo.create({
+        title: notifications.title,
+        content: notifications.content,
+        isSeen: false,
+        type: "order",
+        recordId: orderId,
+        user: order.user,
+      });
+       }
     }
 } 

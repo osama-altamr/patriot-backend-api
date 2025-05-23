@@ -13,6 +13,7 @@ import { VerifyOrderCodeDto } from '../dto/verify-order-code.dto'
 import { OrderCodeService } from '/orders/services/order-code.service'
 import { UpdateOrderItemDto } from '../dto/update-order-item.dto'
 import { OrderItemService } from '/orders/services/order-items.service'
+import { GlassCuttingDto } from '../dto/glass-cutting.dto'
 
 
 @AuthControllerWeb({prefix: "orders"})
@@ -30,6 +31,25 @@ export class OrdersController {
     return await this.ordersService.create(createOrderDto)
   }
 
+  @Post('glass-cutting')
+  glassCuttingAlgo(
+    @Body() input: GlassCuttingDto
+  ) {
+    return this.ordersService.glassCutting(input)
+  }
+  
+
+  @Post(':id/verify-code')
+  async verifyOrderCode(@Param('id') id: string, @Body(VerifyOrderValidation) orderCodeData:  VerifyOrderCodeDto): Promise<{ isValid: boolean, message?: string }> {
+    const order = await this.ordersService.findOne(id)
+
+    return await this.orderCodeService.verifyCode({ 
+      code: orderCodeData.code,
+      orderId:  order.id
+     })
+  }
+
+  
   @Get()
   async findAll(
     @Query() query: GetAllOrdersDto
@@ -58,17 +78,6 @@ export class OrdersController {
     return await this.ordersService.getOrderItems(id)
   }
 
-  @Post(':id/verify-code')
-  async verifyOrderCode(@Param('id') id: string, @Body(VerifyOrderValidation) orderCodeData:  VerifyOrderCodeDto): Promise<{ isValid: boolean, message?: string }> {
-    const order = await this.ordersService.findOne(id)
-
-    return await this.orderCodeService.verifyCode({ 
-      code: orderCodeData.code,
-      orderId:  order.id
-     })
-  }
-
-
   @Patch(':orderId/items/:itemId')
   createOrderItem(
     @Param('orderId') orderId: string,
@@ -78,6 +87,9 @@ export class OrdersController {
     return this.orderItemService.updateOrderItem(orderId,
       itemId, orderItemData)
   }
+
+
+
 
     // @Post(':id/items')
   // createOrderItem(

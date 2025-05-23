@@ -8,7 +8,6 @@ import { UpdateProductValidation } from "../validation/update-product-review.pip
 import { CurrentUser } from "@Package/api";
 import { JwtAuthGuard } from "@Package/auth";
 import { UserService } from "/users/services/user.service";
-import { ProductService } from "/products/services/product.service";
 
 @Controller("product-reviews") 
 export class ProductReviewController {

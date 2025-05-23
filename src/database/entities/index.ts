@@ -13,6 +13,8 @@ export * from "./order-code.entity"
 export * from "./order-item-action.entity"
 export * from "./order-item.entity"
 export * from "./product-review.entity"
+export * from "./report.entity"
+
 
 
 

@@ -17,9 +17,12 @@ import { QrcodeService } from './services/qrcode.service'
 import { StageModule } from '/stages/stage.module'
 import { OrderItemService } from './services/order-items.service'
 import { OrderItemActionRepository } from './repository/order-item-action.repository'
+import { MaterialModule } from '/materials/material.module'
+import { CategoryModule } from '/categories/category.module'
+import { PermissionModule } from '/permissions/permission.module'
 
 @Module({
-    imports: [MailerModule,TypeOrmModule.forFeature([Order, OrderItem, OrderCode, OrderItemAction]), ProductModule, NotificationModule, UserModule, StageModule],
+    imports: [MailerModule,TypeOrmModule.forFeature([Order, OrderItem, OrderCode, OrderItemAction]), ProductModule, NotificationModule, UserModule, StageModule, MaterialModule, CategoryModule, PermissionModule],
     controllers: [OrdersController],
     providers: [OrdersService, OrderCodeService, OrdersRepository, OrderItemService, OrderItemActionRepository, OrderItemRepository, OrderCodeRepository, QrcodeService],
     exports: [OrdersService, OrdersRepository, OrderCodeRepository]

@@ -4,7 +4,7 @@ import { Global, Logger, Module, OnModuleInit } from '@nestjs/common';
 import { getCurrentEnv, EnvironmentService, loadEnv } from './environment.service';
 
 export const AppEnvConfig = ConfigModule.forRoot({
-  envFilePath: [`${getCurrentEnv()}.env`],
+  envFilePath: '.env',
   isGlobal: true,
   load: [() => loadEnv()],
   validationSchema: devValidationSchema,

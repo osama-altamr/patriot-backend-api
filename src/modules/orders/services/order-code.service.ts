@@ -1,25 +1,30 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { OrderCodeRepository } from '../repository/order-code.repository'
-import { Order, OrderCode, User } from 'src/database'
+import { Order, OrderCode, OrderStatus, User } from 'src/database'
 import { UserRepository } from '/users/repository/user.repository'
 import { CreateOrderCodeDto } from '../api/dto/create-order-code.dto'
 import { MailerService } from '/mailer/services/mailer.service'
 import { OrdersRepository } from '../repository/orders.repository'
+import { UserService } from '/users/services/user.service'
 
 @Injectable()
 export class OrderCodeService {
   constructor(
       private readonly orderCodeRepo: OrderCodeRepository,
       private readonly orderRepo: OrdersRepository,
+      private readonly userService: UserService,
+
 
       private readonly mailerService: MailerService,
 
     ) {}
 
-  async createOrderCode(orderCodeData: CreateOrderCodeDto) {
+  async createOrderCode(orderCodeData: CreateOrderCodeDto, estimatedDeliveryTime?: Date) {
     const code = Math.floor(100000 + Math.random() * 900000).toString()
-    const expiresAt = new Date();
+    const expiresAt = new Date(estimatedDeliveryTime);
     expiresAt.setHours(expiresAt.getHours() + 1);
+
+    
     const orderCode = await this.orderCodeRepo.create({
         ...orderCodeData,
         code,
@@ -28,64 +33,58 @@ export class OrderCodeService {
       } as any);
       const emailSubject = 'Patriot Platform: Your Secure Verification Code';
       
-      const emailHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      </head>
-      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; color: #333333;">
-          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
-              <!-- Header -->
-              <div style="background-color: #0d3b66; padding: 25px; text-align: center;">
-                  <img src="https://cdn.worldvectorlogo.com/logos/new-england-patriots.svg" alt="Patriot Platform" width="180" style="max-width: 100%; height: auto;">
-              </div>
-              
-              <!-- Main Content -->
-              <div style="padding: 40px 30px; text-align: center;">
-                  <h1 style="color: #0d3b66; margin: 0 0 25px 0; font-size: 24px; font-weight: 600;">
-                      <span style="display: inline-block; margin-right: 10px;">🔒</span> 
-                      Your Verification Code
-                  </h1>
-                  
-                  <p style="margin: 0 0 30px 0; font-size: 16px; line-height: 1.5;">
-                      Please use the following code to verify your identity:
-                  </p>
-                  
-                  <!-- Code Display -->
-                  <div style="background: linear-gradient(135deg, #f0f7ff 0%, #e1edfa 100%); 
-                              padding: 25px; margin: 0 auto 30px auto; width: fit-content;
-                              border-radius: 10px; border: 1px solid #c9dff5;
-                              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);">
-                      <div style="font-size: 42px; font-weight: 700; letter-spacing: 3px; 
-                                  color: #0d3b66; text-align: center; line-height: 1;">
-                          ${code}
-                      </div>
-                  </div>
-                  
-                  <!-- Expiration Info -->
-                  <div style="margin-bottom: 30px; background-color: #f9f9f9; 
-                              padding: 15px; border-radius: 8px; display: inline-block;">
-                      <p style="margin: 5px 0; color: #555555; font-size: 15px;">
-                          <span style="font-weight: 600;">Expires:</span> 
-                          ${new Date(Date.now() + 3600000).toLocaleString()}
-                      </p>
-                      <p style="margin: 5px 0; color: #555555; font-size: 15px;">
-                          <span style="font-weight: 600;">Valid for:</span> 1 hour
-                      </p>
-                  </div>
-                  
-          </div>
+    const expirationString = expiresAt.toLocaleString('en-US', {
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      timeZoneName: 'short',
+    });
+    const currentYear = new Date().getFullYear();
+
+    let emailHtml = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <!-- ... (your well-structured HTML from the previous step) ... -->
+      <body>
+        <div class="container">
+            <!-- Main Content -->
+            <div class="content">
+                <h1 style="color: #0d3b66; font-weight: 600; font-size: 24px;">Your Secure Verification Code</h1>
+                <p style="font-size: 16px; line-height: 1.6;">Please use the following code to complete your verification</p>
+                
+                <div class="code-box">
+                    <div class="code">{{code}}</div>
+                </div>
+                
+                <p style="font-size: 14px; color: #555555;">This code will expire at approximately {{expiration_time}}.</p>
+            </div>
+            
+            <!-- Footer -->
+            <div class="footer">
+                <p>If you did not request this code, you can safely ignore this email.</p>
+                <p>© {{current_year}} Patriot Platform. All rights reserved.</p>
+            </div>
+        </div>
       </body>
-      </html>
-      `;
+    </html>
+  `;
+
+  emailHtml = emailHtml
+  .replace('{{code}}', code)
+  .replace('{{expiration_time}}', expirationString)
+  .replace('{{current_year}}', currentYear.toString());
+
+      const user = await this.userService.getByEmail(orderCodeData.user.email)
+      
+      console.log(user)
       try {
         await this.mailerService.sendEmail({
-          to:  orderCodeData.user.email,
+          to: user.email,
           subject: emailSubject,
           html: emailHtml,
-        });
+        })
+      console.log(user)
+
       } catch (error) {
         console.error('Failed to send verification email:', error);
       }
@@ -128,7 +127,10 @@ export class OrderCodeService {
             orderCode.id,
             { isVerified: true, verifiedAt: now, code: null, expiresAt: null }
           );
-        
+          await this.orderRepo.update(verificationData.orderId, {
+            status: OrderStatus.delivered,
+            deliveredAt: new Date(),
+          })
           return {
             isValid: true,
             message: 'Verification successful'

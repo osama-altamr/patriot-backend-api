@@ -2,7 +2,7 @@ import { BaseValidationPipe, LocalizedString } from '@Package/api';
 import { nativeEnum, object } from 'zod';
 import { localizedSchema } from '@Package/api/pipes';
 import { string, number } from "zod"
-import { MaterialType } from '../enums/material.enum';
+import { MaterialGlassType, MaterialType } from '../enums/material.enum';
 
 export class CreateMaterialValidation extends BaseValidationPipe {
     constructor() {
@@ -13,6 +13,7 @@ export class CreateMaterialValidation extends BaseValidationPipe {
             height: number().optional(),
             width: number().optional(),
             quantity: number().optional(),
+            glassType: nativeEnum(MaterialGlassType).optional(),
             type: nativeEnum(MaterialType),
             location: string().optional(),
         })

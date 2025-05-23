@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm'
 import { CommonEntity } from './common.entity'
-import { MaterialType } from '/materials/api/enums/material.enum'
+import { MaterialGlassType, MaterialType } from '/materials/api/enums/material.enum'
 
 @Entity()
 export class Material extends CommonEntity {
@@ -47,6 +47,12 @@ export class Material extends CommonEntity {
     type: 'text',
     nullable: true
    })
+   glassType?: MaterialGlassType
+
+   @Column({
+    type: 'text',
+    nullable: true
+   })
    location?: string
 }
 
@@ -60,4 +66,5 @@ export abstract class IMaterial {
   quantity?: number
   type: MaterialType
   location?: string
+  glassType?: MaterialGlassType
 }

@@ -4,6 +4,7 @@ import { CreatePermissionDto } from '../api/dto/request/create-permission.dto'
 import { UpdatePermissionDto } from '../api/dto/request/update-permission.dto'
 import { Permission } from 'src/database' // Adjust path
 import { UserRepository } from '/users/repository/user.repository'
+import { In } from 'typeorm'
 
 @Injectable()
 export class PermissionService {
@@ -36,6 +37,13 @@ export class PermissionService {
         throw new NotFoundException(`Permission with ID ${id} not found for update`)
     }
     return updatedPermission
+  }
+
+  async getAllDrivers() {
+    const driverFrompermissions = await this.permissionRepo.getAllDrivers()
+
+    const driverIds = driverFrompermissions.map(driver => driver.user.id)
+    return await this.userRepo.findBy({ id: In(driverIds)})
   }
 
   async deletePermission(id: string): Promise<void> {

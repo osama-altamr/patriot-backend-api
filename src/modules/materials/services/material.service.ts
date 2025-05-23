@@ -13,6 +13,7 @@ export class MaterialService {
   ) {}
 
   async create(body: CreateMaterialDto){
+    console.log(body)
     return await this.materialRepo.create(body as unknown as Material)
   }
   async getAllMaterials(): Promise<Material[]> {

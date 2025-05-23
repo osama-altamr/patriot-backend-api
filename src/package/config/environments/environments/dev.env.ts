@@ -4,6 +4,7 @@ import { IAppEnv } from '../interfaces/app.interface';
 import { IBaseEnv } from '../interfaces/base.interface';
 import { IJWTEnv } from '../../../config/environments/interfaces/jwt.interface';
 import { IMailerSendEnv } from '../interfaces/mailersend.interface';
+import { IAWSEnv } from '../interfaces/aws.interface';
 
 export interface IAppDevEnv extends IAppEnv {}
 
@@ -20,6 +21,7 @@ export interface IDevEnv extends IBaseEnv {
   database: IDatabaseDevEnv;
   jwt: IJWTDevEnv;
   mailerSend: IMailerSendEnv
+  aws: IAWSEnv
 }
 
 export const GetDevEnv = (): IDevEnv => ({

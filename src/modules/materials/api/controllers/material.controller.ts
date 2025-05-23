@@ -10,9 +10,11 @@ import { UpdateMaterialValidation } from "../validation/update-material.pipe";
 export class MaterialController {
     constructor(private readonly materialService: MaterialService){}
     @Post()
+    
     async create(
         @Body(CreateMaterialValidation) data: CreateMaterialDto
     ){
+        console.log(data)
        return await this.materialService.create(data)
     }
         @Get()

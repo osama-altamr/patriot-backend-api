@@ -26,7 +26,12 @@ export class MailerService {
         options.from || this.environmentService.get('mailerSend.senderEmail'),
         this.environmentService.get('mailerSend.name')
       );
-
+      console.log("Start Sending Email"),
+      
+      console.log("mailerSend config",this.environmentService.get('mailerSend.senderEmail'),
+      this.environmentService.get('mailerSend.name'),
+      this.environmentService.get('mailerSend.apiKey')
+    )
       const recipients = [new Recipient(options.to, 'Recipient')];
 
       const emailParams = new EmailParams()
@@ -44,6 +49,7 @@ export class MailerService {
 
       return await this.mailerSend.email.send(emailParams)
     } catch (error) {
+      console.log({error})
       console.error('Error sending email:', error);
       throw error;
     }

@@ -40,6 +40,9 @@ export class OrderItem extends CommonEntity {
 
     @Column({ type: 'text', nullable: true })
     qrCode: string
+    
+    @Column({ type: 'text', nullable: true })
+    note: string
 
     @ManyToOne(() => Product)
     @JoinColumn({ name: 'product_id' })
@@ -72,4 +75,5 @@ export abstract class IOrderItem {
     qrCode: string
     product: string
     price: number
+    note?: string
 } 

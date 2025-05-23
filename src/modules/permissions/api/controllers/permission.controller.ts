@@ -21,6 +21,14 @@ export class PermissionController {
         return await this.permissionService.getAllPermissions();
     }
 
+
+        @Get('/drivers')
+        // @UserRoleMetadata([UserRole.admin])
+        // @UseGuards(JwtAuthGuard, UserRoleGuard)
+        async getDrivers(){
+            return await this.permissionService.getAllDrivers()
+        }
+
     @Get(':id')
     async getOne(@Param('id') idParam: string): Promise<Permission> {
         return await this.permissionService.getPermission(idParam);

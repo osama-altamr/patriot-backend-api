@@ -9,6 +9,7 @@ export enum OrderStatus {
   completed = 'completed',
   cancelled = 'cancelled',
   delivered = 'delivered',
+  outForDelivery = 'out-for-delivery',
 }
 
 export enum OrderPriority {
@@ -43,11 +44,23 @@ export class Order extends CommonEntity {
   note: string
 
   @Column({
+    type: 'text',
+    nullable: true
+  })
+  ref: string
+  
+  @Column({
     type: 'enum',
     enum: OrderStatus,
     default: OrderStatus.pending
   })
   status: OrderStatus
+
+  @Column({ type: 'timestamp', nullable: true })
+  estimatedDeliveryTime: Date; 
+
+  @Column({ type: 'timestamp', nullable: true })
+  deliveredAt: Date;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
@@ -69,4 +82,6 @@ export abstract class IOrder {
   user?: IUser
   items?: OrderItem[]
   driver?: IUser
+  estimatedDeliveryTime?: Date; 
+  deliveredAt?: Date;
 }

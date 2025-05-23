@@ -10,10 +10,13 @@ export class CreateOrderValidation extends BaseValidationPipe<CreateOrderDto> {
             type: nativeEnum(OrderType).optional(),
             priority: nativeEnum(OrderPriority).optional(),
             items:  object({
+                note: string().optional(),
                 productId: string().optional(),
                 width: number(),
                 height: number(),
                 stageIds: string().array(),
+                categoryId: string().optional(),
+                materialId: string().optional(),
             }).array(),
             userId:  string(),
             driverId: string().optional(),
