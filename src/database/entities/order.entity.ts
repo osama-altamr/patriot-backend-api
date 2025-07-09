@@ -21,7 +21,6 @@ export enum OrderPriority {
 
 export enum OrderType {
   custom = 'custom',
-  
 }
 
 

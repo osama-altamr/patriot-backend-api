@@ -7,10 +7,12 @@ import { PermissionAccessType, PermissionFeature } from '../enums/permission.enu
 export class UpdatePermissionValidation extends BaseValidationPipe<UpdatePermissionDto> {
   constructor() {
     const schema = object({
-      feature: nativeEnum(PermissionFeature).optional(),
       accessType: nativeEnum(PermissionAccessType).optional(),
-      write: boolean().optional(),
-      read: boolean().optional(),
+      scopes: object({
+        feature: nativeEnum(PermissionFeature),
+        write: boolean(),
+        read: boolean(),
+       }).array(),
     });
     super(schema);
   }

@@ -25,6 +25,6 @@ import { PermissionModule } from '/permissions/permission.module'
     imports: [MailerModule,TypeOrmModule.forFeature([Order, OrderItem, OrderCode, OrderItemAction]), ProductModule, NotificationModule, UserModule, StageModule, MaterialModule, CategoryModule, PermissionModule],
     controllers: [OrdersController],
     providers: [OrdersService, OrderCodeService, OrdersRepository, OrderItemService, OrderItemActionRepository, OrderItemRepository, OrderCodeRepository, QrcodeService],
-    exports: [OrdersService, OrdersRepository, OrderCodeRepository]
+    exports: [OrdersService, OrdersRepository, OrderCodeRepository, OrderItemActionRepository]
 })
 export class OrdersModule { } 

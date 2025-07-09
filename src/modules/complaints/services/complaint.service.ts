@@ -6,6 +6,8 @@ import { Complaint, User } from 'src/database'; // Adjust path
 import { ComplaintStatus } from '../api/enums/complaint.enum';
 import { UserRepository } from '/users/repository/user.repository';
 import { UserRole } from '/users/api/enums/user.enum';
+import { Pagination, QueryValue } from '@Package/api';
+import { GetAllComplaintsDto } from '../api/dto/request/get-all.dto';
 
 @Injectable()
 export class ComplaintService {
@@ -25,9 +27,10 @@ export class ComplaintService {
     return this.complaintRepo.create(complaint as any)
   }
 
-  async getAllComplaints(): Promise<Complaint[]> {
-    return this.complaintRepo.findAll({})
-  }
+ async findAll(query: QueryValue<GetAllComplaintsDto>, pagination: Pagination){
+        return await this.complaintRepo.findAllForUser(query, pagination)
+    }
+
 
   async getComplaint(id: string): Promise<Complaint | null> {
     const complaint = await this.complaintRepo.findOneById(id)
