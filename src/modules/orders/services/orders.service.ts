@@ -67,18 +67,7 @@ export class OrdersService {
     }
 
     async findAll(query: QueryValue<GetAllOrdersDto>, pagination: Pagination): Promise<Order[]> {
-        return await this.ordersRepository.findAll({
-            filter: {
-                where: {
-                    ...query
-                },
-                relations: ['user'],
-                order: {
-                    createdAt: 'DESC'
-                },
-                ...pagination
-            }
-        })
+        return await this.ordersRepository.findAllForUser(query, pagination)
     }
 
     async findOne(id: string): Promise<Order> {

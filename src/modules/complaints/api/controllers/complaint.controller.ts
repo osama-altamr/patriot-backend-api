@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, HttpCode, HttpStatus, UseGuards, Req } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, HttpCode, HttpStatus, UseGuards, Req, Query } from "@nestjs/common";
 import { ComplaintService } from "../../services/complaint.service"; // Adjust path
 import { CreateComplaintDto } from "../dto/request/create-complaint.dto";
 import { UpdateComplaintDto } from "../dto/request/update-complaint.dto";
@@ -8,6 +8,8 @@ import { CreateComplaintValidation } from "../validation/create-complaint.pipe";
 import { UpdateComplaintValidation } from "../validation/update-complaint.pipe";
 import { CurrentUser } from "@Package/api";
 import { JwtAuthGuard } from "@Package/auth";
+import { parseQuery } from "@Package/api/functions";
+import { GetAllComplaintsDto } from "../dto/request/get-all.dto";
 
 @Controller("complaints")
 export class ComplaintController {
@@ -25,8 +27,11 @@ export class ComplaintController {
     }
 
     @Get()
-    async getAll(): Promise<Complaint[]> {
-        return await this.complaintService.getAllComplaints();
+    async getAll(
+          @Query() query: GetAllComplaintsDto
+    ): Promise<Complaint[]> {
+         const q = parseQuery(query)
+        return await this.complaintService.findAll(q.myQuery, q.pagination);
     }
 
     @Get(':id')

@@ -1,6 +1,6 @@
+import { IScope } from "src/database"
+
 export class UpdatePermissionDto {
-  feature?: string
-  write?: boolean 
-  read?: boolean  
+ scopes: IScope[]
   accessType?: string 
 }

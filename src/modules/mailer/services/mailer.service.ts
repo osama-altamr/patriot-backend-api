@@ -26,7 +26,7 @@ export class MailerService {
         options.from || this.environmentService.get('mailerSend.senderEmail'),
         this.environmentService.get('mailerSend.name')
       );
-      console.log("Start Sending Email"),
+      console.log("Start Sending Email")
       
       console.log("mailerSend config",this.environmentService.get('mailerSend.senderEmail'),
       this.environmentService.get('mailerSend.name'),
