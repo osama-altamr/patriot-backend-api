@@ -9,8 +9,8 @@ import { EnvironmentService } from '@Package/config';
 import { MailerService } from '/mailer/services/mailer.service';
 import { ResetPasswordDto } from '../api/dto/request/reset-password.dto';
 import { UpdatePasswordDto } from '../api/dto/request/update-password.dto';
-import { PermissionRepository } from '/permissions/repository/permission.repository';
-import { PermissionAccessType } from '/permissions/api/enums/permission.enum';
+import { StateService } from '/states/services/state.service';
+import { CityService } from '/city/services/city.service';
 
 @Injectable()
 export class UserService {
@@ -20,13 +20,27 @@ export class UserService {
     private readonly authService: AuthService,
     private readonly environmentService: EnvironmentService,
     private readonly mailerService: MailerService,
+    private readonly stateService: StateService,
+    private readonly cityService: CityService,
+
   ) {}
   calculateExpiration (issuedAt: Date): Date {
     return addSeconds(issuedAt, +this.environmentService.get('jwt.jwtExpiredRefresh'))
   }
   
-  getAllUsers(): Promise<IUser[]> {
-    return this.userRepo.findAll({});
+  async getAllUsers(): Promise<IUser[]> {
+    let users = await this.userRepo.findAll({})
+
+    users = await  Promise.all(users.map(async user => {
+      if(user.address && user.address.cityId){
+        user.address.city = await this.cityService.getCity(user.address.cityId)
+       }
+       if(user.address && user.address.stateId){
+         user.address.state = await this.stateService.getState(user.address.stateId) 
+       }
+       return user
+    }))
+    return users
   }
 
   getByEmail(email: string): Promise<IUser> {
@@ -35,12 +49,26 @@ export class UserService {
     })
   }
 
-  getMe(id: string): Promise<IUser> {
-    return this.userRepo.findOneById(id)
+  async getMe(id: string): Promise<IUser> {
+    const user = await this.userRepo.findOneById(id)
+    if(user.address && user.address.cityId){
+      user.address.city = await this.cityService.getCity(user.address.cityId)
+     }
+     if(user.address && user.address.stateId){
+       user.address.state = await this.stateService.getState(user.address.stateId) 
+     }
+     return user
   }
 
-  updateUser(id: string, updateData: Partial<User>): Promise<IUser> {
-    return this.userRepo.update(id, updateData)
+  async updateUser(id: string, updateData: Partial<User>): Promise<IUser> {
+    const user = await this.userRepo.update(id, updateData)
+    if(user.address && user.address.cityId){
+     user.address.city = await this.cityService.getCity(user.address.cityId)
+    }
+    if(user.address && user.address.stateId){
+      user.address.state = await this.stateService.getState(user.address.stateId) 
+    }
+    return user
   }
   
   async createUser(data: IUser): Promise<{

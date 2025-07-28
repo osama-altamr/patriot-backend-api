@@ -12,6 +12,15 @@ export class UpdateUserValidation extends BaseValidationPipe<AddUserDto> {
         photoUrl:  string().optional(),
         phoneNumber:  string().optional(),
         fcmToken: string().optional(),
+        address: object({
+          stateId: string(),
+          cityId: string().optional(),
+          street1: string(),
+          street2: string().optional(),
+          postalCode: string().optional(),
+          apartment: string().optional(),
+          complex: string().optional(),
+         })
     })
     super(schema)
   }
@@ -26,7 +35,16 @@ export class UpdateUserForAdminValidation extends BaseValidationPipe<AddUserDto>
         photoUrl:  string().optional(),
         phoneNumber:  string().optional(),
         fcmToken: string().optional(),
-        role: nativeEnum(UserRole)
+        role: nativeEnum(UserRole),
+        address: object({
+          stateId: string(),
+          cityId: string().optional(),
+          street1: string(),
+          street2: string().optional(),
+          postalCode: string().optional(),
+          apartment: string().optional(),
+          complex: string().optional(),
+         })
     })
     super(schema)
   }
