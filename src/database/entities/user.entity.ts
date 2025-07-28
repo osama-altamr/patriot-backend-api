@@ -5,7 +5,19 @@ import { Permission } from './permission.entity'
 import { CommonEntity } from './common.entity'
 import { Complaint } from './complaint.entity'
 import { Notification } from './notification.entity'
+import { State, City } from './'
 
+interface IAddress {
+  stateId: string
+  state: State
+  cityId?: string
+  city: City
+  street1: string
+  street2?: string
+  postalCode: string
+  apartment?: string
+  complex?: string
+}
 
 @Entity()
 export class User extends CommonEntity {
@@ -21,6 +33,8 @@ export class User extends CommonEntity {
   @Column({ type: "text" })
   password: string
 
+  @Column({ type: "json", nullable: true  })
+  address: IAddress
 
   @Column({ nullable: true })
   resetPasswordCode: string | null;
@@ -70,4 +84,5 @@ export abstract class IUser {
   phoneNumber?: string
   fcmToken?: string
   refreshTokens?: RefreshToken[]
+  address?: IAddress
 }

@@ -18,6 +18,8 @@ import { HomeModule } from '/home/home.module'
 import { AWSModule } from '/aws/aws.module'
 import { ProductReviewModule } from '/product-reviews/product-review.module'
 import { ReportModule } from '/reports/report.module'
+import { StateModule } from '/states/state.module'
+import { CityModule } from '/city/city.module'
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { ReportModule } from '/reports/report.module'
     AWSModule,
     ProductReviewModule,
     ReportModule,
+    StateModule,
+    CityModule,
   ],
 })
 export class AppModule {}
