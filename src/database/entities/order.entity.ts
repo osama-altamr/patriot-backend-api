@@ -2,6 +2,8 @@ import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMan
 import { CommonEntity } from './common.entity'
 import { IUser, User } from './user.entity'
 import { OrderItem } from './order-item.entity'
+import { State } from './state.entity'
+import { City } from './city.entity'
 
 export enum OrderStatus {
   pending = 'pending',
@@ -23,6 +25,17 @@ export enum OrderType {
   custom = 'custom',
 }
 
+export interface IAddress {
+  stateId: string
+  state: State
+  cityId?: string
+  city: City
+  street1: string
+  street2?: string
+  postalCode: string
+  apartment?: string
+  complex?: string
+}
 
 @Entity()
 export class Order extends CommonEntity {
@@ -55,8 +68,12 @@ export class Order extends CommonEntity {
   })
   status: OrderStatus
 
+  @Column({ type: "json", nullable: true  })
+  address: IAddress
+  
+
   @Column({ type: 'timestamp', nullable: true })
-  estimatedDeliveryTime: Date; 
+  outForDeliveryAt: Date; 
 
   @Column({ type: 'timestamp', nullable: true })
   deliveredAt: Date;
@@ -81,6 +98,7 @@ export abstract class IOrder {
   user?: IUser
   items?: OrderItem[]
   driver?: IUser
-  estimatedDeliveryTime?: Date; 
+  outForDeliveryAt?: Date; 
   deliveredAt?: Date;
+  address: IAddress
 }

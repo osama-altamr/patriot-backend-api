@@ -38,7 +38,7 @@ export class OrdersController {
     return this.ordersService.glassCutting(input)
   }
 
-  @Post(':id/verify-code')
+  @Post(':id/verify-codes')
   async verifyOrderCode(@Param('id') id: string, @Body(VerifyOrderValidation) orderCodeData:  VerifyOrderCodeDto): Promise<{ isValid: boolean, message?: string }> {
     const order = await this.ordersService.findOne(id)
     return await this.orderCodeService.verifyCode({ 

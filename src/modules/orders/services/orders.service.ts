@@ -15,9 +15,9 @@ import { GlassCuttingDto } from '../api/dto/glass-cutting.dto'
 import { MaterialService } from '/materials/services/material.service'
 import * as Genetic from 'genetic-js';
 import  { Select1 } from 'genetic-js';
-
-
 import { MaxRectsPacker, Rectangle } from 'maxrects-packer';
+import { StateService } from '/states/services/state.service'
+import { CityService } from '/city/services/city.service'
 
 type PackableItem = {
     id: any;
@@ -34,6 +34,8 @@ export class OrdersService {
         private readonly orderCodeService: OrderCodeService,
         private readonly notificationService: NotificationService,
         private readonly materialService: MaterialService,
+        private readonly stateService: StateService,
+        private readonly cityService: CityService,
 
     ) { }
 
@@ -202,6 +204,13 @@ export class OrdersService {
             user: user,
         })
 
+        if(order.address && order.address.cityId) {
+            order.address.city = await this.cityService.getCity(order.address.cityId)
+        }
+        if(order.address && order.address.stateId) {
+            order.address.state = await this.stateService.getState(order.address.stateId)
+        }
+
         return await this.ordersRepository.findOneById(order.id)
     }
 
@@ -214,6 +223,13 @@ export class OrdersService {
         if (!order) {
             throw new NotFoundException(`Order with ID ${id} not found`)
         }
+        if(order.address && order.address.cityId) {
+            order.address.city = await this.cityService.getCity(order.address.cityId)
+        }
+        if(order.address && order.address.stateId) {
+            order.address.state = await this.stateService.getState(order.address.stateId)
+        }
+
         return order
     }
 
@@ -224,13 +240,21 @@ export class OrdersService {
             if(!order.driver) {
                 updateOrderDto.driver = {id: updateOrderDto.driverId}
                 updateOrderDto.status = OrderStatus.outForDelivery
-                await this.orderCodeService.createOrderCode({ order, user }, updateOrderDto.estimatedDeliveryTime)
+                updateOrderDto.outForDeliveryAt = new Date()
+                await this.orderCodeService.createOrderCode({ order, user })
             }
             delete updateOrderDto.driverId;
         }
         if(updateOrderDto.status === OrderStatus.delivered){
             updateOrderDto.deliveredAt = new Date()
         }
+        if(order.address && order.address.cityId) {
+            order.address.city = await this.cityService.getCity(order.address.cityId)
+        }
+        if(order.address && order.address.stateId) {
+            order.address.state = await this.stateService.getState(order.address.stateId)
+        }
+
         return await this.ordersRepository.update(id, updateOrderDto as any)
     }
 

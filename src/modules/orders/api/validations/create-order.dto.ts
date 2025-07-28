@@ -9,6 +9,15 @@ export class CreateOrderValidation extends BaseValidationPipe<CreateOrderDto> {
             note: string().optional(),
             type: nativeEnum(OrderType).optional(),
             priority: nativeEnum(OrderPriority).optional(),
+            address: object({
+                stateId: string(),
+                cityId: string().optional(),
+                street1: string(),
+                street2: string().optional(),
+                postalCode: string().optional(),
+                apartment: string().optional(),
+                complex: string().optional(),
+               }),
             items:  object({
                 note: string().optional(),
                 productId: string().optional(),
