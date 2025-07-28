@@ -63,8 +63,6 @@ export class OrderCodeService {
   .replace('{{current_year}}', currentYear.toString());
 
       const user = await this.userService.getByEmail(orderCodeData.user.email)
-      user.email = 'osama.altamr.sy@gmail.com'
-      console.log(user)
       try {
         await this.mailerService.sendEmail({
           to: user.email,
