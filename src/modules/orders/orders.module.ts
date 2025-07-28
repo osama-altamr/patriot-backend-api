@@ -20,9 +20,16 @@ import { OrderItemActionRepository } from './repository/order-item-action.reposi
 import { MaterialModule } from '/materials/material.module'
 import { CategoryModule } from '/categories/category.module'
 import { PermissionModule } from '/permissions/permission.module'
+import { StateModule } from '/states/state.module'
+import { CityModule } from '/city/city.module'
 
 @Module({
-    imports: [MailerModule,TypeOrmModule.forFeature([Order, OrderItem, OrderCode, OrderItemAction]), ProductModule, NotificationModule, UserModule, StageModule, MaterialModule, CategoryModule, PermissionModule],
+    imports: [
+    MailerModule,
+    TypeOrmModule.forFeature([Order, OrderItem, OrderCode, OrderItemAction]),
+    ProductModule, NotificationModule, UserModule, StageModule, MaterialModule, CategoryModule, PermissionModule, 
+    StateModule, CityModule,
+],
     controllers: [OrdersController],
     providers: [OrdersService, OrderCodeService, OrdersRepository, OrderItemService, OrderItemActionRepository, OrderItemRepository, OrderCodeRepository, QrcodeService],
     exports: [OrdersService, OrdersRepository, OrderCodeRepository, OrderItemActionRepository]

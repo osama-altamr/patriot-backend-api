@@ -1,5 +1,5 @@
 import { Category, Material, Stage } from 'src/database'
-import { OrderPriority, OrderStatus, OrderType } from '../../../../database/entities/order.entity'
+import { IAddress, OrderPriority, OrderStatus, OrderType } from '../../../../database/entities/order.entity'
 
 export class CreateOrderDto {
     priority: OrderPriority
@@ -9,6 +9,7 @@ export class CreateOrderDto {
     userId?: string
     driverId?: string
     items: CreateOrderItemDto[]
+    address: IAddress
 } 
 
 export class CreateOrderItemDto {
@@ -23,7 +24,7 @@ export class CreateOrderItemDto {
     stages?: Stage[]
     currentStage: Stage
     currentStageId?: string
-    estimatedDeliveryTime?: Date; 
+    outForDeliveryAt?: Date; 
     deliveredAt?: Date;
     note?: string
 }

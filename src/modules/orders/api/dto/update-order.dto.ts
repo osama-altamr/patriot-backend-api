@@ -1,5 +1,4 @@
-import { IUser } from 'src/database'
-import { OrderPriority, OrderStatus } from '../../../../database/entities/order.entity'
+import { IAddress, OrderPriority, OrderStatus } from '../../../../database/entities/order.entity'
 
 export class UpdateOrderDto {
     priority?: OrderPriority
@@ -7,6 +6,7 @@ export class UpdateOrderDto {
     status?: OrderStatus
     driverId?: string
     driver?: any
-    estimatedDeliveryTime?: Date; 
+    outForDeliveryAt?: Date; 
     deliveredAt?: Date;
+    address?: IAddress
 } 

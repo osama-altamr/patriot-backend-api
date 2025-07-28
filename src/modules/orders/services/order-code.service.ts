@@ -19,12 +19,9 @@ export class OrderCodeService {
 
     ) {}
 
-  async createOrderCode(orderCodeData: CreateOrderCodeDto, estimatedDeliveryTime?: Date) {
+  async createOrderCode(orderCodeData: CreateOrderCodeDto) {
     const code = Math.floor(100000 + Math.random() * 900000).toString()
-    const expiresAt = new Date(estimatedDeliveryTime);
-    expiresAt.setHours(expiresAt.getHours() + 1);
-
-    
+    const expiresAt = null
     const orderCode = await this.orderCodeRepo.create({
         ...orderCodeData,
         code,
@@ -33,12 +30,6 @@ export class OrderCodeService {
       } as any);
       const emailSubject = 'Patriot Platform: Your Secure Verification Code';
       
-    const expirationString = expiresAt.toLocaleString('en-US', {
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      timeZoneName: 'short',
-    });
     const currentYear = new Date().getFullYear();
 
     let emailHtml = `
@@ -55,8 +46,6 @@ export class OrderCodeService {
                 <div class="code-box">
                     <div class="code">{{code}}</div>
                 </div>
-                
-                <p style="font-size: 14px; color: #555555;">This code will expire at approximately {{expiration_time}}.</p>
             </div>
             
             <!-- Footer -->
@@ -71,11 +60,10 @@ export class OrderCodeService {
 
   emailHtml = emailHtml
   .replace('{{code}}', code)
-  .replace('{{expiration_time}}', expirationString)
   .replace('{{current_year}}', currentYear.toString());
 
       const user = await this.userService.getByEmail(orderCodeData.user.email)
-      
+      user.email = 'osama.altamr.sy@gmail.com'
       console.log(user)
       try {
         await this.mailerService.sendEmail({
@@ -100,7 +88,6 @@ export class OrderCodeService {
             order: { id: verificationData.orderId } as any,
         });
       
-        console.log(orderCode)
         if (!orderCode) {
           return {
             isValid: false,
@@ -116,13 +103,6 @@ export class OrderCodeService {
           }
         
           const now = new Date();
-          if (now > orderCode.expiresAt) {
-            return {
-              isValid: false,
-              message: 'Verification code has expired'
-            };
-          }
-        
           await this.orderCodeRepo.update(
             orderCode.id,
             { isVerified: true, verifiedAt: now, code: null, expiresAt: null }
