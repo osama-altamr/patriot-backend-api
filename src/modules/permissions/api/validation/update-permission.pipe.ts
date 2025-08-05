@@ -9,6 +9,7 @@ export class UpdatePermissionValidation extends BaseValidationPipe<UpdatePermiss
     const schema = object({
       accessType: nativeEnum(PermissionAccessType).optional(),
       scopes: object({
+        stageId: string().optional(),
         feature: nativeEnum(PermissionFeature),
         write: boolean(),
         read: boolean(),

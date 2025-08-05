@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserService } from '/users/services/user.service';
 import { User } from '../../database';
@@ -9,8 +9,12 @@ import { RefreshTokenModule } from '/refresh-tokens/refresh-token.module';
 import { MailerModule } from '/mailer/mailer.module';
 import { StateModule } from '/states/state.module';
 import { CityModule } from '/city/city.module';
+import { PermissionModule } from '/permissions/permission.module';
+
 @Module({
-  imports: [TypeOrmModule.forFeature([User]),RefreshTokenModule, AuthModule, MailerModule, StateModule, CityModule ],
+  imports: [TypeOrmModule.forFeature([User]),
+  forwardRef(() => PermissionModule),
+  RefreshTokenModule, AuthModule, MailerModule, StateModule, CityModule ],
   providers: [UserRepository, UserService],
   controllers: [UserController],
   exports: [UserService, UserRepository],

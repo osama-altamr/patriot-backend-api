@@ -1,21 +1,27 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common'
 import { PermissionRepository } from '../repository/permission.repository' // Adjust path
 import { CreatePermissionDto } from '../api/dto/request/create-permission.dto'
 import { UpdatePermissionDto } from '../api/dto/request/update-permission.dto'
 import { Permission } from 'src/database' // Adjust path
 import { UserRepository } from '/users/repository/user.repository'
 import { In } from 'typeorm'
+import { StageRepository } from '/stages/repository/stage.repository'
 
 @Injectable()
 export class PermissionService {
   constructor(
-      private readonly permissionRepo: PermissionRepository,
-      private readonly userRepo: UserRepository
+    @Inject(forwardRef(() => UserRepository))
+    private readonly userRepo: UserRepository,
+    private readonly permissionRepo: PermissionRepository,
+    private readonly stageRepo: StageRepository
     ) {}
 
   async createPermission(permissionData: CreatePermissionDto): Promise<Permission| Permission[]> {
      const user = await this.userRepo.findOneById(permissionData.userId)
+     const stage = await this.stageRepo.findOneById(permissionData.stageId)
+     
      permissionData.user = user
+     permissionData.stage = stage
     return this.permissionRepo.create(permissionData as any)
   }
 
@@ -32,6 +38,8 @@ export class PermissionService {
   }
 
   async updatePermission(id: string, updateData: UpdatePermissionDto): Promise<Permission> {
+    const stage = await this.stageRepo.findOneById(updateData.stageId)
+    updateData.stage = stage
     const updatedPermission = await this.permissionRepo.update(id, updateData as any)
     if (!updatedPermission) {
         throw new NotFoundException(`Permission with ID ${id} not found for update`)
