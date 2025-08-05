@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { IUser, User } from '../../../database';
 import { UserRepository } from '/users/repository/user.repository';
 import { HashService, } from '@Package/auth';
@@ -11,10 +11,13 @@ import { ResetPasswordDto } from '../api/dto/request/reset-password.dto';
 import { UpdatePasswordDto } from '../api/dto/request/update-password.dto';
 import { StateService } from '/states/services/state.service';
 import { CityService } from '/city/services/city.service';
+import { PermissionRepository } from '/permissions/repository/permission.repository';
 
 @Injectable()
 export class UserService {
   constructor(
+    @Inject(forwardRef(() => PermissionRepository))
+    private readonly permissionRepo: PermissionRepository,
     private readonly userRepo: UserRepository,
     private readonly refreshTokenRepo: RefreshTokenRepository,
     private readonly authService: AuthService,
@@ -38,15 +41,24 @@ export class UserService {
        if(user.address && user.address.stateId){
          user.address.state = await this.stateService.getState(user.address.stateId) 
        }
+       const permission = await this.permissionRepo.findOneBy({
+        user: {id: user.id}
+      })
+      user.permissions = permission as any
        return user
     }))
     return users
   }
 
-  getByEmail(email: string): Promise<IUser> {
-    return this.userRepo.findOneBy({
+ async getByEmail(email: string): Promise<User> {
+    const user = await this.userRepo.findOneBy({
       email,
     })
+    const permission = await this.permissionRepo.findOneBy({
+      user: {id: user.id}
+    })
+    user.permissions = permission as any
+    return
   }
 
   async getMe(id: string): Promise<IUser> {
@@ -57,6 +69,10 @@ export class UserService {
      if(user.address && user.address.stateId){
        user.address.state = await this.stateService.getState(user.address.stateId) 
      }
+     const permission = await this.permissionRepo.findOneBy({
+      user: {id: user.id}
+    })
+    user.permissions = permission as any
      return user
   }
 
@@ -68,6 +84,10 @@ export class UserService {
     if(user.address && user.address.stateId){
       user.address.state = await this.stateService.getState(user.address.stateId) 
     }
+    const permission = await this.permissionRepo.findOneBy({
+      user: {id: user.id}
+    })
+    user.permissions = permission as any
     return user
   }
   
