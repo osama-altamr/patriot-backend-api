@@ -7,6 +7,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app: NestApplication = await NestFactory.create(AppModule)
+  app.enableCors();
   app.setGlobalPrefix('api')
   app.use(morgan("dev"))
   nestjsFilter(app)
