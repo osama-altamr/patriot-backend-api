@@ -1,10 +1,11 @@
-import { LocalizedString } from '@Package/api/interfaces/localized.interface'
-import { IPermission, IScope, IUser } from 'src/database' // Adjust path
-import { PermissionAccessType, PermissionFeature } from '../../enums/permission.enum'
+import { IScope, IStage, IUser } from 'src/database' // Adjust path
+import { PermissionAccessType } from '../../enums/permission.enum'
 
-export class CreatePermissionDto implements Omit<IPermission, 'id' | 'user'> {
+export class CreatePermissionDto {
   userId: string
   user?: IUser
+  stageId: string
+  stage?: IStage
   scopes: IScope[]
   accessType: PermissionAccessType
 }
