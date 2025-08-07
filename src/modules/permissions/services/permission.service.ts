@@ -25,8 +25,8 @@ export class PermissionService {
     return this.permissionRepo.create(permissionData as any)
   }
 
-  async getAllPermissions(): Promise<Permission[]> {
-    return this.permissionRepo.findAll({})
+  async getAllPermissions(){
+   return this.permissionRepo.getAllWithPop()
   }
 
   async getPermission(id: string): Promise<Permission | null> {

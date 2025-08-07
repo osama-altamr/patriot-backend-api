@@ -50,9 +50,13 @@ export class OrdersController {
   @Get()
   async findAll(
     @Query() query: GetAllOrdersDto
-  ): Promise<Order[]> {
+  ){
     const q = parseQuery(query)
-    return await this.ordersService.findAll(q.myQuery, q.pagination)
+    const data = await this.ordersService.findAll(q.myQuery, q.pagination)
+    return {
+      results: data,
+      total: data.length,
+    }
   }
 
   @Get(':id')

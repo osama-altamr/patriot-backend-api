@@ -13,10 +13,7 @@ export class OrderCodeService {
       private readonly orderCodeRepo: OrderCodeRepository,
       private readonly orderRepo: OrdersRepository,
       private readonly userService: UserService,
-
-
       private readonly mailerService: MailerService,
-
     ) {}
 
   async createOrderCode(orderCodeData: CreateOrderCodeDto) {

@@ -75,4 +75,12 @@ export class PermissionRepository extends BaseRepository<Permission> {
       relations: ['user']
     })
   }
+
+  async getAllWithPop(){
+    return await this.repository.find({
+      where: {
+      },
+      relations: ['user', 'stage']
+    })
+  }
 }

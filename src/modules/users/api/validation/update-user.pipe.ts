@@ -9,9 +9,8 @@ export class UpdateUserValidation extends BaseValidationPipe<AddUserDto> {
     const schema = object({
       name: string().optional(),
         email: string().email().optional(),
-        photoUrl:  string().optional(),
-        phoneNumber:  string().optional(),
-        fcmToken: string().optional(),
+        photoUrl:  string().optional().nullable(),
+        phoneNumber:  string().optional().nullable(),
         address: object({
           stateId: string(),
           cityId: string().optional(),
@@ -20,7 +19,7 @@ export class UpdateUserValidation extends BaseValidationPipe<AddUserDto> {
           postalCode: string().optional(),
           apartment: string().optional(),
           complex: string().optional(),
-         })
+         }).optional()
     })
     super(schema)
   }
@@ -32,10 +31,9 @@ export class UpdateUserForAdminValidation extends BaseValidationPipe<AddUserDto>
         name: string().optional(),
         email: string().email().optional(),
         password: string().optional(),
-        photoUrl:  string().optional(),
-        phoneNumber:  string().optional(),
-        fcmToken: string().optional(),
-        role: nativeEnum(UserRole),
+        photoUrl:  string().optional().nullable(),
+        phoneNumber:  string().optional().nullable(),
+        role: nativeEnum(UserRole).optional(),
         address: object({
           stateId: string(),
           cityId: string().optional(),
@@ -44,7 +42,7 @@ export class UpdateUserForAdminValidation extends BaseValidationPipe<AddUserDto>
           postalCode: string().optional(),
           apartment: string().optional(),
           complex: string().optional(),
-         })
+         }).optional(),
     })
     super(schema)
   }

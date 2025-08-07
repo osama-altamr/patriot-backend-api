@@ -24,7 +24,7 @@ export class User extends CommonEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
-  @Column({type: "text"})
+  @Column({type: "text", nullable: true })
   name: string
 
   @Column({ type: "text" })
