@@ -18,12 +18,15 @@ import  { Select1 } from 'genetic-js';
 import { MaxRectsPacker, Rectangle } from 'maxrects-packer';
 import { StateService } from '/states/services/state.service'
 import { CityService } from '/city/services/city.service'
+import * as path from 'path'; 
+import { Worker } from 'worker_threads';
 
 type PackableItem = {
     id: any;
     width: number;
     height: number;
 }
+export let glassCuttingData: any = {} 
 
 @Injectable()
 export class OrdersService {
@@ -38,6 +41,64 @@ export class OrdersService {
         private readonly cityService: CityService,
 
     ) { }
+
+    async startGlassCuttingJob(inputData: GlassCuttingDto): Promise<void> {
+        console.log(`Received job request. Preparing data for worker...`);
+        
+        const material = await this.materialService.getMaterial(inputData.materialId);
+        const width = inputData.width ?? material.width;
+        const height = inputData.height ?? material.height;
+    
+        const allItems = (await this.orderItemRepository.findAll({})).map(item => ({
+            id: item.id.toString(), // ضمان أن ID هو string أو number
+            width: item.width,
+            height: item.height,
+        }));
+        
+        const packableItems = allItems.filter(item => 
+            (item.width <= width && item.height <= height) || 
+            (item.height <= width && item.width <= height)
+        );
+    
+        if (packableItems.length === 0) {
+            console.log('No items fit the material. Job aborted.');
+            return;
+        }
+    
+        const worker = new Worker(path.resolve(__dirname, '../workers/glass-cutting.worker.js'));
+    
+        worker.on('message', async (result) => {
+          if (result.status === 'completed') {
+            console.log(`Worker job completed. Saving results...`);
+            try {
+                const data = result.data;
+                glassCuttingData = data
+                console.log(`Results saved to database. Result ID: ${data}`);
+            } catch(dbError) {
+                console.log('Failed to save the result to the database.', dbError.stack);
+            }
+          } else {
+            console.log(`Worker job failed with error: ${result.error}`);
+          }
+        });
+    
+        worker.on('error', (error) => {
+          console.log(`A critical error occurred in the worker thread:`, error);
+        });
+    
+        worker.on('exit', (code) => {
+          console.log(`Worker exited with code ${code}.`);
+        });
+        
+        console.log(`Offloading job to worker with ${packableItems.length} items.`);
+        worker.postMessage({ 
+            width, 
+            height, 
+            packableItems,
+            originalMaterialId: inputData.materialId
+        });
+      }
+
     private crossover(
         parent1: PackableItem[], 
         parent2: PackableItem[],
@@ -92,39 +153,6 @@ export class OrdersService {
             .filter(Boolean);
     }
     
-    private findBestGap(rectangles: Rectangle[], width: number, height: number): {x: number, y: number, space: number} {
-        const gaps: {x: number, y: number, space: number}[] = [];
-        
-        // تحليل الفراغات الأفقية
-        rectangles.forEach(rect => {
-            const rightSpace = width - (rect.x + rect.width);
-            if (rightSpace > 0) {
-                gaps.push({
-                    x: rect.x + rect.width,
-                    y: rect.y,
-                    space: rightSpace * rect.height
-                });
-            }
-        });
-        
-        // تحليل الفراغات الرأسية
-        rectangles.forEach(rect => {
-            const bottomSpace = height - (rect.y + rect.height);
-            if (bottomSpace > 0) {
-                gaps.push({
-                    x: rect.x,
-                    y: rect.y + rect.height,
-                    space: rect.width * bottomSpace
-                });
-            }
-        });
-        
-        // ترتيب الفراغات من الأكبر إلى الأصغر
-        gaps.sort((a, b) => b.space - a.space);
-        
-        return gaps[0] || null; // إرجاع أكبر فراغ
-    }
-    
     async glassCutting(inputData: GlassCuttingDto): Promise<any> {
         const material = await this.materialService.getMaterial(inputData.materialId);
         const width = inputData.width ?? material.width;
@@ -132,14 +160,12 @@ export class OrdersService {
     
         console.log(`عملية القطع الأمثل على مادة مقاس ${width}x${height}`);
     
-        // الحصول على جميع العناصر من قاعدة البيانات
         const allItems = (await this.orderItemRepository.findAll({})).map(item => ({
             id: item.id,
             width: item.width,
             height: item.height,
         }));
         
-        // تصفية العناصر التي تناسب المادة (مع أو بدون تدوير)
         const packableItems = allItems.filter(item => 
             (item.width <= width && item.height <= height) || 
             (item.height <= width && item.width <= height)
@@ -154,21 +180,18 @@ export class OrdersService {
             };
         }
         
-        // إعداد خوارزمية جينية
         const config = {
-            iterations: 700,
-            populationSize: 200, 
+            iterations: 3000,
+            populationSize: 500, 
             mutationChance: 0.4,
             crossoverChance: 0.85,
             fittestAlwaysSurvives: true,
             eliteCount: 5
         };
         
-        // تهيئة المجتمع الأولي مع تدوير ذكي
         let population: PackableItem[][] = [];
         for (let i = 0; i < config.populationSize; i++) {
             const individual = packableItems.map(item => {
-                // تفضيل التدوير عندما يحسن استخدام المساحة
                 const shouldRotate = item.height > item.width && 
                                    item.width <= height && 
                                    item.height <= width;
@@ -180,9 +203,7 @@ export class OrdersService {
             population.push(this.shuffleWithPriority(individual));
         }
     
-        // دالة اللياقة
         const calculateFitness = (chromosome: PackableItem[]) => {
-            // التحقق أولاً من العناصر المكررة
             const uniqueItems = chromosome.filter((item, index, self) =>
                 index === self.findIndex(i => i.id === item.id)
             );
@@ -373,13 +394,15 @@ export class OrdersService {
         const packedIds = new Set(packedItems.map(p => p.id));
         const unpackedItems = packableItems.filter(item => !packedIds.has(item.id));
     
-        return {
+         glassCuttingData = {
             materialDimensions: { width, height },
             packedItems,
             unpackedItems,
             utilization: packedArea / (width * height),
         };
+        return glassCuttingData
     }
+
     async create(createOrderDto: CreateOrderDto): Promise<Order> {
           const random4Digit = Math.floor(1000 + Math.random() * 9000); 
           const newRef = `DO-${random4Digit}`;
