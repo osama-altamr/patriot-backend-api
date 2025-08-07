@@ -12,4 +12,11 @@ export class ProductRepository extends BaseRepository<Product> {
   ) {
     super(repository);
   }
+  async findAllWithPop() {
+    return await this.findAll({
+      filter: {
+        relations: ['category']
+      }
+    })
+  }
 }

@@ -46,6 +46,8 @@ export abstract class IComplaint {
   id: string
   description: string
   fileUrl?: string 
+  location?: string
+  type?: string
   status: ComplaintStatus 
   user?: IUser
   closedBy?: IUser | null 

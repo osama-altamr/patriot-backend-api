@@ -21,17 +21,20 @@ export class ComplaintController {
     async createComplaint(
         @Body(CreateComplaintValidation
         ) complaintData: CreateComplaintDto,
-        @CurrentUser() user: User
     ): Promise<Complaint | Complaint[]> {
-        return await this.complaintService.createComplaint(complaintData, user);
+        return await this.complaintService.createComplaint(complaintData);
     }
 
     @Get()
     async getAll(
           @Query() query: GetAllComplaintsDto
-    ): Promise<Complaint[]> {
+    ) {
          const q = parseQuery(query)
-        return await this.complaintService.findAll(q.myQuery, q.pagination);
+        const complaints = await this.complaintService.findAll(q.myQuery, q.pagination)
+        return {
+            total: complaints.length,
+            results: complaints
+        }
     }
 
     @Get(':id')

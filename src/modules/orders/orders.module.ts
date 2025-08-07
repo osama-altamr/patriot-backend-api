@@ -32,6 +32,6 @@ import { CityModule } from '/city/city.module'
 ],
     controllers: [OrdersController],
     providers: [OrdersService, OrderCodeService, OrdersRepository, OrderItemService, OrderItemActionRepository, OrderItemRepository, OrderCodeRepository, QrcodeService],
-    exports: [OrdersService, OrdersRepository, OrderCodeRepository, OrderItemActionRepository]
+    exports: [ OrdersService, OrdersRepository, OrderCodeRepository, OrderItemActionRepository]
 })
 export class OrdersModule { } 

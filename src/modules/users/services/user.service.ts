@@ -12,6 +12,7 @@ import { UpdatePasswordDto } from '../api/dto/request/update-password.dto';
 import { StateService } from '/states/services/state.service';
 import { CityService } from '/city/services/city.service';
 import { PermissionRepository } from '/permissions/repository/permission.repository';
+import { UserRole } from '../api/enums/user.enum';
 
 @Injectable()
 export class UserService {
@@ -31,10 +32,10 @@ export class UserService {
     return addSeconds(issuedAt, +this.environmentService.get('jwt.jwtExpiredRefresh'))
   }
   
-  async getAllUsers(): Promise<IUser[]> {
-    let users = await this.userRepo.findAll({})
+  async getAllUsers(search?: string, role?: UserRole){
+    let users = await this.userRepo.getAllUsers(search, role)
 
-    users = await  Promise.all(users.map(async user => {
+    users.results = await  Promise.all(users.results.map(async user => {
       if(user.address && user.address.cityId){
         user.address.city = await this.cityService.getCity(user.address.cityId)
        }

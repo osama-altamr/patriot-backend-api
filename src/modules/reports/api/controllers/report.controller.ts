@@ -14,9 +14,13 @@ export class ReportController {
        return await this.reportService.create(data as any)
     }
         @Get()
-        async getAll(): Promise<Report[]> {
-            return await this.reportService.getAllReports();
+        async getAll() {
+          const data = await this.reportService.getAllReports();
+          return {
+            results: data,
+            total: data.length
         }
+    }
     
         @Get(':id')
         async getOne(@Param('id') idParam: string): Promise<Report> {

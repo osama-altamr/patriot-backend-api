@@ -16,13 +16,14 @@ export class ComplaintService {
       private readonly userRepo: UserRepository,
     ) {}
 
-  async createComplaint(complaintData: CreateComplaintDto, requestingUser: User): Promise<Complaint | Complaint[]> {
+  async createComplaint(complaintData: CreateComplaintDto): Promise<Complaint | Complaint[]> {
     const complaint = new Complaint()
+    const user = await this.userRepo.findOneById(complaintData.userId)
+    complaintData.user = user
     complaint.description = complaintData.description;
     complaint.fileUrl = complaintData.fileUrl;
     complaint.type = complaintData.type;
     complaint.location = complaintData.location;
-    complaint.user = requestingUser
     complaint.status = ComplaintStatus.pending
     return this.complaintRepo.create(complaint as any)
   }
