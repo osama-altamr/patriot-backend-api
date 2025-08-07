@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common'
-import { OrdersService } from '../../services/orders.service'
+import { glassCuttingData, OrdersService } from '../../services/orders.service'
 import { CreateOrderDto } from '../dto/create-order.dto'
 import { UpdateOrderDto } from '../dto/update-order.dto'
 import { Order } from '../../../../database/entities/order.entity'
@@ -14,7 +14,6 @@ import { OrderCodeService } from '/orders/services/order-code.service'
 import { UpdateOrderItemDto } from '../dto/update-order-item.dto'
 import { OrderItemService } from '/orders/services/order-items.service'
 import { GlassCuttingDto } from '../dto/glass-cutting.dto'
-
 
 @AuthControllerWeb({prefix: "orders"})
 export class OrdersController {
@@ -31,11 +30,21 @@ export class OrdersController {
     return await this.ordersService.create(createOrderDto)
   }
 
-  @Post('glass-cutting')
-  glassCuttingAlgo(
-    @Body() input: GlassCuttingDto
+    @Post('glass-cutting')
+    async glassCuttingAlgo(
+      @Body() input: GlassCuttingDto
+    ) {
+      this.ordersService.startGlassCuttingJob(input);
+      return { 
+        status: 202,
+        message: 'Glass cutting job has been accepted and is being processed in the background.',
+      };
+    }
+
+  @Get('material-grid')
+  getMaterialGrid(
   ) {
-    return this.ordersService.glassCutting(input)
+   return glassCuttingData
   }
 
   @Post(':id/verify-codes')
