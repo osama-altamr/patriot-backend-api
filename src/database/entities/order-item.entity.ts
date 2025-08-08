@@ -48,10 +48,7 @@ export class OrderItem extends CommonEntity {
     @JoinColumn({ name: 'product_id' })
     product: Product
     
-    @OneToMany(() => Stage, (stage) => stage.orderItem, {
-        cascade: true,
-        eager: true,
-      })
+    @OneToMany(() => Stage, (stage) => stage.orderItem)
     stages: Stage[];
 
     @ManyToOne(()=> Stage)

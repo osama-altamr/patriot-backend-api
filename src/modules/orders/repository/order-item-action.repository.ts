@@ -44,4 +44,15 @@ export class OrderItemActionRepository extends BaseRepository<OrderItemAction> {
       averageItemCompletionTimeMinutes,
     };
   }
+
+  async getItemActions(
+   orderItemId: string
+  ) {
+    return await this.orderItemActionRepository.find({
+      where: {
+        orderItem: {id: orderItemId},
+      },
+      relations: ['stage', 'employee']
+    })
+  }
 }

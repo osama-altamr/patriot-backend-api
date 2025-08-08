@@ -18,11 +18,11 @@ export enum OrderPriority {
   low = 'low',
   medium = 'medium',
   high = 'high',
-  urgent = 'urgent'
 }
 
 export enum OrderType {
   custom = 'custom',
+  static = 'static'
 }
 
 export interface IAddress {

@@ -36,29 +36,33 @@ export class OrderItemService {
 async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promise<OrderItem> {
     const product = await this.productService.getProduct(orderItemData.productId)
     await this.ordersRepository.findOneById(orderId)
-    const stages = await this.stageRepo.findByIds(orderItemData.stageIds)
-    let category
     let material
+    let category
+
     if(orderItemData.categoryId){
         category= await this.categoryRepo.findOneById(orderItemData.categoryId)
     }
     if(orderItemData.materialId){
         material= await this.materialRepo.findOneById(orderItemData.materialId)
     }
+
+    orderItemData.stages = product.stages
+
+    console.log(orderItemData.stages)
     const orderItem  = await this.orderItemRepository.create({
         ...orderItemData,
         order: { id: orderId } as any,
-        product: product.id,
+        product,
         status: OrderItemStatus.pending,
         price: 0,
-        stages,
         category,
     } as any) as OrderItem
 
     const qrCode = await this.qrcodeService.generateQRCode(`http://locahost:3000/confirm-state?orderId=${orderId}&orderItem=${orderItem.id}`)
     const updatedOrderItem =  await this.orderItemRepository.update(orderItem.id, {
-        qrCode
+        qrCode,
     })
+    console.log(product.stages, 'Productsssss', product.id)
     return updatedOrderItem
 }
 

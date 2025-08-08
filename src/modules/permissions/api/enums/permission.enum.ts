@@ -15,6 +15,7 @@ export const getKeysOf = <K extends string, V>(obj: { [key in K]: V }): K[] =>
     stages = 'stages',
     reports = 'reports',
     users  = 'users',
+    operations = 'operations',
   }
 
 export const permissionFeatureValues = getValuesOf(PermissionFeature)

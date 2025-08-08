@@ -13,7 +13,7 @@ export class UpdatePermissionValidation extends BaseValidationPipe<UpdatePermiss
         feature: nativeEnum(PermissionFeature),
         write: boolean(),
         read: boolean(),
-       }).array(),
+       }).array().optional(),
     });
     super(schema);
   }

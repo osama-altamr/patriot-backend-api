@@ -1,11 +1,13 @@
 import { LocalizedString } from '@Package/api/interfaces/localized.interface'
-import { IProduct } from 'src/database'
+import { IProduct, Stage } from 'src/database'
 
-export class CreateProductDto implements Omit<IProduct, 'id' | 'category'> {
+export class CreateProductDto {
   name: LocalizedString
   description?: LocalizedString
   imageUrl?: string
   height?: number
   width?: number
   categoryId: string 
+  stageIds?: string[]
+  stages?: Stage[]
 }

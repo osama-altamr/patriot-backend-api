@@ -33,9 +33,11 @@ export class AuthSessionService {
     const user = await this.userRepo.findOneBy({
       email: data.email,
     })
-    user.permissions = await this.permissionRepo.findOneBy({
-      user: {id: user.id}
-    }) as any
+    if(!user) {
+     throw new BadRequestException()
+    }
+    user.permissions = await this.permissionRepo.findOneByWithPop(user.id)
+  
     if(!await HashService.comparePassword(data.password, user.password)){
       throw new BadRequestException()
     }
@@ -44,6 +46,7 @@ export class AuthSessionService {
       email: user.email,
       role: user.role,
     })
+  
     const refreshToken = await this.authService.generateRefreshToken({
       id: user.id,
       email: user.email,

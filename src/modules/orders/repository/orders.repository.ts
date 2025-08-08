@@ -81,9 +81,10 @@ export class OrdersRepository extends BaseRepository<Order> {
                 user: true,
                 driver: true,
                 items: {
-                    product: true,
+                  stages: true,
+                   product: true,
                     category: true,
-                    stages: true
+                    currentStage: true,
                 }
             }
         })

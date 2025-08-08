@@ -1,8 +1,9 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany, ManyToMany, JoinTable } from 'typeorm'
 import { Category, ICategory } from './category.entity'
 import { CommonEntity } from './common.entity'
 import { LocalizedString } from '@Package/api/interfaces/localized.interface'
 import { ProductReview } from './product-review.entity'
+import { Stage } from './stage.entity'
 
 @Entity()
 export class Product extends CommonEntity {
@@ -36,6 +37,10 @@ export class Product extends CommonEntity {
   @ManyToOne(() => Category, (category) => category.products)
   category: Category
 
+  @ManyToMany(() => Stage, (stage) => stage.products)
+  @JoinTable()
+  stages: Stage[]
+
   @OneToMany(() => ProductReview, (review) => review.product)
   reviews: ProductReview[]
 
@@ -51,6 +56,7 @@ export abstract class IProduct {
   height?: number
   width?: number
   category?: ICategory
+  stages: Stage[]
 
   ratingsQuantity?: number
   ratingsAverage?: number

@@ -47,8 +47,10 @@ interface EmployeeBreakdownByType {
     name: string
     totalDeliveredOrders: number
     averageDeliveryTimeMinutes: number
+    id: string
   }>
   employees: Array<{
+    id: string
     name: string
     totalCompletedItems: number
     averageItemCompletionTimeMinutes: number

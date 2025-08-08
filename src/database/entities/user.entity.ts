@@ -58,7 +58,7 @@ export class User extends CommonEntity {
   refreshTokens: RefreshToken[]
 
   @OneToMany(() => Permission, (permission) => permission.user)
-  permissions: Permission[]
+  permissions: Permission
 
   @OneToMany(() => Complaint, (complaint) => complaint.user)
   complaints: Complaint[]

@@ -11,4 +11,20 @@ export class StageRepository extends BaseRepository<Stage> {
   ) {
     super(repository);
   }
+
+
+  async getAllStages(search?: string) {
+    const queryBuilder = this.repository.createQueryBuilder('stage');
+
+    if (search) {
+      const searchTerm = `%${search}%`;
+      queryBuilder.where(
+        `(LOWER(stage.name->>'en') LIKE LOWER(:search) OR LOWER(stage.name->>'ar') LIKE LOWER(:search))`,
+        { search: searchTerm }
+      );
+    }
+    const [data, total] = await queryBuilder.getManyAndCount();
+
+    return { results: data, total };
+  }
 }
