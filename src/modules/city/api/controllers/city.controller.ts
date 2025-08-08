@@ -1,6 +1,6 @@
 // FILE: src/api/controllers/city.controller.ts
 
-import { Body, Controller, Delete, Get, Param, Patch, Post, HttpCode, HttpStatus } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, HttpCode, HttpStatus, Query } from "@nestjs/common";
 import { CityService } from "../../services/city.service"; // Adjust path
 import { CreateCityDto } from "../dto/request/create-city.dto";
 import { UpdateCityDto } from "../dto/request/update-city.dto";
@@ -19,8 +19,8 @@ export class CityController {
     }
 
     @Get()
-    async getAll(): Promise<City[]> {
-        return await this.cityService.getAllCities();
+    async getAll(@Query('search') search?: string){
+        return await this.cityService.getAllCities(search);
     }
 
     @Get(':id')

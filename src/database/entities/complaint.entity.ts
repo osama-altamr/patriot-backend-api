@@ -40,6 +40,9 @@ export class Complaint extends CommonEntity {
 
    @ManyToOne(() => User, (user) => user.closedComplaints)
    closedBy: User
+
+   userId: string
+   closedById: string
 }
 
 export abstract class IComplaint {

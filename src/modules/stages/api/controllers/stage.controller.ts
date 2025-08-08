@@ -15,7 +15,11 @@ export class StageController {
     
         @Get()
         async getAll(){
-            return await this.stageService.getAllStages()
+        const data = await this.stageService.getAllStages()
+        return {
+            total: data.length,
+            results: data
+        }
         }
     
         @Get(':id')

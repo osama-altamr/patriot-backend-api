@@ -15,7 +15,6 @@ export class NotificationRepository extends BaseRepository<Notification> {
   }
 
   async findForMe(user: User, isSeen?: boolean ) {
-    console.log(user)
     return this.repository.findBy({  user: { id: user.id }, isSeen })
   }
 

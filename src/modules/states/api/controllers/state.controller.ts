@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, HttpCode, HttpStatus } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, HttpCode, HttpStatus, Query } from "@nestjs/common";
 import { StateService } from "../../services/state.service"; // Adjust path
 import { CreateStateDto } from "../dto/request/create-state.dto";
 import { UpdateStateDto } from "../dto/request/update-state.dto";
@@ -17,8 +17,8 @@ export class StateController {
     }
 
     @Get()
-    async getAll(): Promise<State[]> {
-        return await this.stateService.getAllStates();
+    async getAll(@Query('search') search: string) {
+        return await this.stateService.getAllStates(search);
     }
 
     @Get(':id')

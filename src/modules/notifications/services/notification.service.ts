@@ -18,9 +18,9 @@ export class NotificationService {
     return this.NotificationRepo.create(notificationData as any)
   }
 
-  async getAllNotifications(userId: string): Promise<Notification[]> {
+  async getAllNotifications(userId: string, isSeen?: boolean): Promise<Notification[]> {
     const user = await this.userRepo.findOneById(userId)
-    return this.NotificationRepo.findForMe(user)
+    return this.NotificationRepo.findForMe(user, isSeen)
   }
 
   async getNotification(id: string): Promise<Notification | null> {

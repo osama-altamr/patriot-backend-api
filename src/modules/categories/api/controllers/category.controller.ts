@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, HttpCode, HttpStatus } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, HttpCode, HttpStatus, Query } from "@nestjs/common";
 import { CategoryService } from "../../services/category.service"; // Adjust path
 import { CreateCategoryDto } from "../dto/request/create-category.dto";
 import { UpdateCategoryDto } from "../dto/request/update-category.dto";
@@ -17,10 +17,11 @@ export class CategoryController {
     }
 
     @Get()
-    async getAll(): Promise<Category[]> {
-        return await this.categoryService.getAllCategories();
+    async getAll(@Query('search') search?: string) {
+       return await this.categoryService.getAllCategories(search);
     }
 
+    
     @Get(':id')
     async getOne(@Param('id') idParam: string): Promise<Category> {
         return await this.categoryService.getCategory(idParam);

@@ -17,8 +17,12 @@ export class PermissionController {
     }
 
     @Get()
-    async getAll(): Promise<Permission[]> {
-        return await this.permissionService.getAllPermissions();
+    async getAll(){
+    const data = await this.permissionService.getAllPermissions();
+    return {
+        total: data.length,
+        results: data
+    }
     }
 
 

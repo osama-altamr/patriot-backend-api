@@ -19,9 +19,14 @@ export class ProductController {
     }
 
     @Get()
-    async getAll(): Promise<Product[]> {
-        return await this.productService.getAllProducts();
+    async getAll(){
+    const data = await this.productService.getAllProducts()
+    return {
+        total: data.length,
+        results: data
     }
+    }
+
 
     @Get(':id/reviews')
     async getReviews(@Param('id') productId: string,): Promise<ProductReview[]> {

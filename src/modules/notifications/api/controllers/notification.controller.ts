@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Param, HttpCode, HttpStatus, UseGuards, Body, Post } from "@nestjs/common";
+import { Controller, Delete, Get, Param, HttpCode, HttpStatus, UseGuards, Body, Post, Query } from "@nestjs/common";
 import { NotificationService } from "../../services/notification.service"; // Adjust path
 import { Notification, User } from "src/database"; // Adjust path
 import { JwtAuthGuard } from "@Package/auth";
@@ -12,16 +12,13 @@ export class NotificationController {
 
     @Get()
     @UseGuards(JwtAuthGuard)
-    async getAll(@CurrentUser() user: User): Promise<Notification[]> {
-        return await this.NotificationService.getAllNotifications(user.id);
+    async getAll(@CurrentUser() user: User, @Query('isSeen') isSeen?: boolean){
+        const data = await this.NotificationService.getAllNotifications(user.id, isSeen);
+        return {
+            results: data,
+            total: data.length
+        }
     }
-   
-    @Get('unread')
-    @UseGuards(JwtAuthGuard)
-    async getUnread(@CurrentUser() user: User): Promise<Notification[]> {
-        return await this.NotificationService.getUnredNotifications(user.id);
-    }
-
     @Get('unread-count')
     @UseGuards(JwtAuthGuard)
     async getUnreadCount(@CurrentUser() user: User): Promise<{count: number}> {
