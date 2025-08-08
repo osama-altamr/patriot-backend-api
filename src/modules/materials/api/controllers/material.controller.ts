@@ -18,8 +18,12 @@ export class MaterialController {
        return await this.materialService.create(data)
     }
         @Get()
-        async getAll(): Promise<Material[]> {
-            return await this.materialService.getAllMaterials();
+        async getAll() {
+            const data = await this.materialService.getAllMaterials();
+            return {
+                results: data,
+                total: data.length
+            }
         }
     
         @Get(':id')

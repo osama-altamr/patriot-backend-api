@@ -19,8 +19,8 @@ export class CityService {
     return this.cityRepo.create(cityData as any)
   }
 
-  async getAllCities(): Promise<City[]> {
-    return this.cityRepo.findAllWithPop({})
+  async getAllCities(search?: string){
+    return this.cityRepo.getAllCities(search)
   }
 
   async getCity(id: string): Promise<City | null> {

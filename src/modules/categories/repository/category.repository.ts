@@ -12,4 +12,17 @@ export class CategoryRepository extends BaseRepository<Category> {
   ) {
     super(repository);
   }
+      async getAllCategories(search?: string) {
+        const queryBuilder = this.repository.createQueryBuilder('category');
+        if (search) {
+            const searchTerm = `%${search}%`;
+            queryBuilder.where(
+              `(LOWER(category.name->>'en') LIKE LOWER(:search) OR LOWER(category.name->>'ar') LIKE LOWER(:search))`,
+              { search: searchTerm }
+            );
+        }
+        const [data, total] = await queryBuilder.getManyAndCount();
+    
+        return { results: data, total: total }; 
+    }
 }

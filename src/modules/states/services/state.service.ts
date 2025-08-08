@@ -16,8 +16,8 @@ export class StateService {
     return this.stateRepo.create(stateData as any)
   }
 
-  async getAllStates(): Promise<State[]> {
-    return this.stateRepo.findAll({})
+  async getAllStates(search?: string){
+    return this.stateRepo.getAllStates(search)
   }
 
   async getState(id: string): Promise<State | null> {

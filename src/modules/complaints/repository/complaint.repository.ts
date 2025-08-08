@@ -18,6 +18,8 @@ export class ComplaintRepository extends BaseRepository<Complaint> {
       async findAllForUser(query: QueryValue<GetAllComplaintsDto>, pagination: Pagination){
           const queryBuilder = this.repository.createQueryBuilder('complaint');
           queryBuilder.leftJoinAndSelect('complaint.user', 'user');
+          queryBuilder.leftJoinAndSelect('complaint.closedBy', 'user');
+
           if (query.status) {
             queryBuilder.andWhere('complaint.status = :status', { status: query.status });
           }

@@ -31,9 +31,15 @@ export class ComplaintController {
     ) {
          const q = parseQuery(query)
         const complaints = await this.complaintService.findAll(q.myQuery, q.pagination)
+        const updatedComplaints = complaints.map(comp => {
+            comp.userId = comp.user.id
+            comp.closedById = comp.closedBy.id
+
+            return comp
+        })
         return {
             total: complaints.length,
-            results: complaints
+            results: updatedComplaints
         }
     }
 
