@@ -84,8 +84,8 @@ export class OrdersController {
   }
 
   @Get(':id/items')
-  async getOrderItems(@Param('id') id: string): Promise<OrderItem[]> {
-    return await this.ordersService.getOrderItems(id)
+  async getOrderItems(@Param('id') id: string, @Query('currentStage') currentStageId?: string): Promise<OrderItem[]> {
+    return await this.ordersService.getOrderItems(id,currentStageId)
   }
 
   @Patch(':orderId/items/:itemId')

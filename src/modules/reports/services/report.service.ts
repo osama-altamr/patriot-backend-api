@@ -11,6 +11,7 @@ import { PermissionRepository } from '/permissions/repository/permission.reposit
 import { OrderCodeRepository } from '/orders/repository/order-code.repository';
 import { OrderItemRepository } from '/orders/repository/order-item.repository';
 import { OrderItemActionRepository } from '/orders/repository/order-item-action.repository';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class ReportService {
@@ -56,6 +57,7 @@ export class ReportService {
       const reportPromises = breakdownByType.drivers.map(async driver => {
         const orderStatus = await this.orderRepo.getStatsForSingleDriver(driver.user, body.startDate, body.endDate);
         return {
+          id: randomUUID(),
           name: driver.user.name,
           deliveredOrders: orderStatus.totalDeliveredOrders,
           averageDeliveryTimeMinutes: orderStatus.totalDeliveredOrders,
@@ -65,6 +67,7 @@ export class ReportService {
       const employeeReportPromises = breakdownByType.employees.map(async employee => {
         const performanceStats = await this.orderItemActionRepo.getStatsForSingleEmployee(employee.user, body.startDate, body.endDate);
         return {
+          id: randomUUID(),
           name: employee.user.name,
           completedItems: performanceStats.totalCompletedItems,
           averageTime: performanceStats.averageItemCompletionTimeMinutes, 

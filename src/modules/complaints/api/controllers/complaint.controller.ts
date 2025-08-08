@@ -3,7 +3,6 @@ import { ComplaintService } from "../../services/complaint.service"; // Adjust p
 import { CreateComplaintDto } from "../dto/request/create-complaint.dto";
 import { UpdateComplaintDto } from "../dto/request/update-complaint.dto";
 import { Complaint, User } from "src/database"
-import { AuthGuard } from '@nestjs/passport'
 import { CreateComplaintValidation } from "../validation/create-complaint.pipe";
 import { UpdateComplaintValidation } from "../validation/update-complaint.pipe";
 import { CurrentUser } from "@Package/api";
@@ -32,9 +31,8 @@ export class ComplaintController {
          const q = parseQuery(query)
         const complaints = await this.complaintService.findAll(q.myQuery, q.pagination)
         const updatedComplaints = complaints.map(comp => {
-            comp.userId = comp.user.id
-            comp.closedById = comp.closedBy.id
-
+            comp.userId = comp.user?.id
+            comp.closedById = comp.closedBy?.id
             return comp
         })
         return {

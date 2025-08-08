@@ -5,6 +5,9 @@ import { ProductRepository } from '/products/repository/product.repository';
 import { MaterialRepository } from '/materials/repository/material.repository';
 import { ComplaintRepository } from '/complaints/repository/complaint.repository';
 import { OrdersRepository } from '/orders/repository/orders.repository';
+import { ReportRepository } from '/reports/repository/report.repository';
+import { StageRepository } from '/stages/repository/stage.repository';
+import { CategoryRepository } from '/categories/repository/category.repository';
 
 @Injectable()
 export class HomeService {
@@ -14,6 +17,9 @@ export class HomeService {
     private readonly materialRepo: MaterialRepository,
     private readonly complaintRepo: ComplaintRepository,
     private readonly orderRepo: OrdersRepository,
+    private readonly categoryRepo: CategoryRepository,
+    private readonly stageRepo: StageRepository,
+    private readonly reportRepo: ReportRepository,
   ) {}
   async getStatistics() {
     const [
@@ -22,12 +28,18 @@ export class HomeService {
       totalMaterials,
       totalComplaints,
       totalOrders,
+      totalCategories,
+      totalStages,
+      totalReports,
     ] = await Promise.all([
       this.userRepo.count(),
       this.productRepo.count(),
       this.materialRepo.count(),
       this.complaintRepo.count(),
       this.orderRepo.count(),
+      this.categoryRepo.count(),
+      this.stageRepo.count(),
+      this.reportRepo.count(),
     ]);
     return {
       totals: {
@@ -36,10 +48,11 @@ export class HomeService {
         materials: totalMaterials,
         complaints: totalComplaints,
         orders: totalOrders,
-      },
-    };
-
-  
+        categories: totalCategories,
+        reports: totalStages,
+        stages: totalReports
+    }
+    }
   }
 
   async getStatisticsMe(userId: string) {
@@ -59,6 +72,7 @@ export class HomeService {
       inProgress: counts[OrderStatus.inProgress] || 0,
       cancelled: counts[OrderStatus.cancelled] || 0,
       delivered: counts[OrderStatus.delivered] || 0,
+      
     };
   }
 }

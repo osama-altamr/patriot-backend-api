@@ -43,14 +43,12 @@ export class OrdersService {
     ) { }
 
     async startGlassCuttingJob(inputData: GlassCuttingDto): Promise<void> {
-        console.log(`Received job request. Preparing data for worker...`);
-        
         const material = await this.materialService.getMaterial(inputData.materialId);
         const width = inputData.width ?? material.width;
         const height = inputData.height ?? material.height;
     
         const allItems = (await this.orderItemRepository.findAll({})).map(item => ({
-            id: item.id.toString(), // ضمان أن ID هو string أو number
+            id: item.id.toString(),
             width: item.width,
             height: item.height,
         }));
@@ -490,12 +488,13 @@ export class OrdersService {
         await this.ordersRepository.delete(id)
     }
 
-    async getOrderItems(orderId: string): Promise<OrderItem[]> {
+    async getOrderItems(orderId: string, currentStageId: string): Promise<OrderItem[]> {
         await this.findOne(orderId)
         return await this.orderItemRepository.findAll({
             filter: {
                 where: {
-                    order: { id: orderId }
+                    order: { id: orderId },
+                    currentStage: { id: currentStageId }
                 }
             }
         })
