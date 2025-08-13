@@ -4,11 +4,13 @@ import { CreateOrderDto } from '../api/dto/create-order.dto'
 import { UpdateOrderDto } from '../api/dto/update-order.dto'
 import { Order, OrderStatus } from '../../../database/entities/order.entity'
 import { OrderItem } from '../../../database/entities/order-item.entity'
+import { User } from '../../../database/entities/user.entity'
 import { OrderItemRepository } from '../repository/order-item.repository'
 import { Pagination, QueryValue } from '@Package/api'
 import { GetAllOrdersDto } from '../api/dto/get-all.dto'
 import { NotificationService } from '/notifications/services/notification.service'
 import { UserService } from '/users/services/user.service'
+import { DataSource } from 'typeorm'
 import { OrderCodeService } from './order-code.service'
 import { OrderItemService } from './order-items.service'
 import { GlassCuttingDto } from '../api/dto/glass-cutting.dto'
@@ -41,6 +43,7 @@ export class OrdersService {
         private readonly materialService: MaterialService,
         private readonly stateService: StateService,
         private readonly cityService: CityService,
+        private readonly dataSource: DataSource,
 
     ) { }
 
@@ -404,39 +407,82 @@ export class OrdersService {
     }
 
     async create(createOrderDto: CreateOrderDto): Promise<Order> {
-          const random4Digit = Math.floor(1000 + Math.random() * 9000); 
-          const newRef = `DO-${random4Digit}`;
-        const user = await this.userService.getMe(createOrderDto.userId)
-        const order = await this.ordersRepository.create({
-            ...createOrderDto,
-            ref: newRef,
-            user,
-        } as any) as Order
 
-        await Promise.all(createOrderDto.items.map(async item => await this.orderItemService.createOrderItem(order.id, item)))
-        await this.notificationService.createNotification({
-            title: {
-                en: `New Order #${order.ref }`,
-                ar: `طلب جديد #${order.ref}`
-              },
-              content: {
-                en: `Your order has been placed successfully`,
-                ar: `تم تقديم طلبك بنجاح.`
-              },
-            recordId: order.id,
-            type: 'order',
-            userId: user.id,
-            user: user,
-        })
 
-        if(order.address && order.address.cityId) {
-            order.address.city = await this.cityService.getCity(order.address.cityId)
+
+        // بدء معاملة قاعدة البيانات
+        const queryRunner = this.dataSource.createQueryRunner()
+        await queryRunner.connect()
+        await queryRunner.startTransaction()
+
+        try {
+            const random4Digit = Math.floor(1000 + Math.random() * 9000)
+            const newRef = `DO-${random4Digit}`
+
+            // التحقق من وجود المستخدم
+            const user = await this.userService.getMe(createOrderDto.userId)
+            if (!user) {
+                throw new NotFoundException('User not found')
+            }
+
+            // إنشاء الطلب
+            const { items, ...orderData } = createOrderDto;
+            const order = await this.ordersRepository.create({
+                ...orderData,
+                ref: newRef,
+                user: user as User,
+                status: OrderStatus.pending,
+            }) as Order
+
+            // إنشاء عناصر الطلب مع معالجة الأخطاء
+            const orderItems = []
+            for (const item of createOrderDto.items) {
+                try {
+                    const orderItem = await this.orderItemService.createOrderItem(order.id, item)
+                    orderItems.push(orderItem)
+                } catch (error) {
+                    throw new Error(`Failed to create order item: ${error.message}`)
+                }
+            }
+
+            // إنشاء الإشعار
+            await this.notificationService.createNotification({
+                title: {
+                    en: `New Order #${order.ref}`,
+                    ar: `طلب جديد #${order.ref}`
+                },
+                content: {
+                    en: `Your order has been placed successfully`,
+                    ar: `تم تقديم طلبك بنجاح.`
+                },
+                recordId: order.id,
+                type: 'order',
+                userId: user.id,
+                user: user,
+            })
+
+            // تحديث عنوان الطلب
+            if (order.address && order.address.cityId) {
+                order.address.city = await this.cityService.getCity(order.address.cityId)
+            }
+            if (order.address && order.address.stateId) {
+                order.address.state = await this.stateService.getState(order.address.stateId)
+            }
+
+            // تأكيد المعاملة
+            await queryRunner.commitTransaction()
+
+            // إرجاع الطلب مع جميع العلاقات
+            return await this.ordersRepository.findOneById(order.id)
+
+        } catch (error) {
+            // التراجع عن المعاملة في حالة الخطأ
+            await queryRunner.rollbackTransaction()
+            throw error
+        } finally {
+            // إغلاق الاتصال
+            await queryRunner.release()
         }
-        if(order.address && order.address.stateId) {
-            order.address.state = await this.stateService.getState(order.address.stateId)
-        }
-
-        return await this.ordersRepository.findOneById(order.id)
     }
 
     async findAll(query: QueryValue<GetAllOrdersDto>, pagination: Pagination): Promise<Order[]> {

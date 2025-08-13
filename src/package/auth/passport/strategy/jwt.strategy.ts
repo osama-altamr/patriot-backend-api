@@ -8,7 +8,7 @@ import { EnvironmentService } from '@Package/config';
 export class JWTStrategy extends PassportStrategy(Strategy, StrategyConstant.jwt) {
 
   constructor(
-    private readonly environmentService: EnvironmentService,
+    readonly environmentService: EnvironmentService,
   ) {
     const secretKey = environmentService.get('jwt.jwtAccessToken');
     super({

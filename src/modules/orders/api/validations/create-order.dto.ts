@@ -10,23 +10,24 @@ export class CreateOrderValidation extends BaseValidationPipe<CreateOrderDto> {
             type: nativeEnum(OrderType).optional(),
             priority: nativeEnum(OrderPriority).optional(),
             address: object({
-                stateId: string(),
+                stateId: string().min(1, 'State ID is required'),
                 cityId: string().optional(),
-                street1: string(),
+                street1: string().min(1, 'Street address is required'),
                 street2: string().optional(),
                 postalCode: string().optional(),
                 apartment: string().optional(),
                 complex: string().optional(),
                }),
-            items:  object({
+            items: object({
                 note: string().optional(),
-                productId: string().optional(),
-                width: number(),
-                height: number(),
+                productId: string().min(1, 'Product ID is required'),
+                width: number().positive('Width must be positive'),
+                height: number().positive('Height must be positive'),
                 categoryId: string().optional(),
                 materialId: string().optional(),
-            }).array(),
-            userId:  string(),
+                currentStageId: string().optional(),
+            }).array().min(1, 'At least one item is required'),
+            userId: string().min(1, 'User ID is required'),
             driverId: string().optional(),
         })
         super(schema)

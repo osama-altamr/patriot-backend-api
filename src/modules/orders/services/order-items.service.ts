@@ -34,36 +34,94 @@ export class OrderItemService {
     ) { }
 
 async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promise<OrderItem> {
-    const product = await this.productService.getProduct(orderItemData.productId)
-    await this.ordersRepository.findOneById(orderId)
-    let material
-    let category
+    try {
+        // التحقق من وجود المنتج
+        const product = await this.productService.getProduct(orderItemData.productId)
+        if (!product) {
+            throw new NotFoundException(`Product with ID ${orderItemData.productId} not found`)
+        }
 
-    if(orderItemData.categoryId){
-        category= await this.categoryRepo.findOneById(orderItemData.categoryId)
+        // التحقق من وجود الطلب
+        const order = await this.ordersRepository.findOneById(orderId)
+        if (!order) {
+            throw new NotFoundException(`Order with ID ${orderId} not found`)
+        }
+
+        let material = null
+        let category = null
+
+        // التحقق من الفئة إذا تم تمريرها
+        if (orderItemData.categoryId) {
+            category = await this.categoryRepo.findOneById(orderItemData.categoryId)
+            if (!category) {
+                throw new NotFoundException(`Category with ID ${orderItemData.categoryId} not found`)
+            }
+        }
+
+        // التحقق من المادة إذا تم تمريرها
+        if (orderItemData.materialId) {
+            material = await this.materialRepo.findOneById(orderItemData.materialId)
+            if (!material) {
+                throw new NotFoundException(`Material with ID ${orderItemData.materialId} not found`)
+            }
+        }
+
+        // تحديد المرحلة الحالية الأولى
+        let currentStage = null
+
+        // إذا تم تمرير معرف المرحلة الحالية
+        if (orderItemData.currentStageId) {
+            currentStage = await this.stageRepo.findOneById(orderItemData.currentStageId)
+            if (!currentStage) {
+                throw new NotFoundException(`Stage with ID ${orderItemData.currentStageId} not found`)
+            }
+        }
+        // إذا كان المنتج له مراحل، استخدم المرحلة الأولى
+        else if (product.stages && product.stages.length > 0) {
+            // ترتيب المراحل حسب الترتيب إذا كان متوفراً
+            const sortedStages = product.stages.sort((a, b) => (a.order || 0) - (b.order || 0))
+            currentStage = sortedStages[0]
+        }
+
+        // إنشاء عنصر الطلب
+        const orderItem = await this.orderItemRepository.create({
+            width: orderItemData.width,
+            height: orderItemData.height,
+            note: orderItemData.note,
+            order: { id: orderId } as any,
+            product,
+            status: OrderItemStatus.pending,
+            price: 0,
+            category,
+            material,
+            currentStage,
+            stages: product.stages || [], // نسخ جميع المراحل من المنتج
+        } as any) as OrderItem
+
+        // إنشاء رمز QR
+        try {
+            const qrCode = await this.qrcodeService.generateQRCode(
+                `http://localhost:3000/confirm-state?orderId=${orderId}&orderItem=${orderItem.id}`
+            )
+
+            const updatedOrderItem = await this.orderItemRepository.update(orderItem.id, {
+                qrCode,
+            })
+
+            return updatedOrderItem
+        } catch (qrError) {
+            // إذا فشل إنشاء QR code، نحذف عنصر الطلب ونرمي خطأ
+            await this.orderItemRepository.delete(orderItem.id)
+            throw new Error(`Failed to generate QR code: ${qrError.message}`)
+        }
+
+    } catch (error) {
+        // معالجة شاملة للأخطاء
+        if (error instanceof NotFoundException) {
+            throw error
+        }
+        throw new Error(`Failed to create order item: ${error.message}`)
     }
-    if(orderItemData.materialId){
-        material= await this.materialRepo.findOneById(orderItemData.materialId)
-    }
-
-    orderItemData.stages = product.stages
-
-    console.log(orderItemData.stages)
-    const orderItem  = await this.orderItemRepository.create({
-        ...orderItemData,
-        order: { id: orderId } as any,
-        product,
-        status: OrderItemStatus.pending,
-        price: 0,
-        category,
-    } as any) as OrderItem
-
-    const qrCode = await this.qrcodeService.generateQRCode(`http://locahost:3000/confirm-state?orderId=${orderId}&orderItem=${orderItem.id}`)
-    const updatedOrderItem =  await this.orderItemRepository.update(orderItem.id, {
-        qrCode,
-    })
-    console.log(product.stages, 'Productsssss', product.id)
-    return updatedOrderItem
 }
 
 async updateOrderItem(orderId: string, itemId:string, orderItemData: UpdateOrderItemDto): Promise<OrderItem> {
