@@ -1,27 +1,20 @@
 import { Logger, Module, OnModuleInit } from '@nestjs/common';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule,  } from '@nestjs/typeorm';
 import { EnvironmentService } from '@Package/config';
-import { DataSource } from 'typeorm';
-import { User } from './entities';
 
 const ORMModule = TypeOrmModule.forRootAsync({
+  imports: [ConfigModule],
   inject: [EnvironmentService],
-  useFactory: (envService: EnvironmentService)=>{
-    const ormConfig: TypeOrmModuleOptions = {
-      type: "postgres",
-      port: envService.get("database.port"),
-      username: envService.get("database.username"),
-      host: envService.get("database.host"),
-      password: envService.get("database.password"),
-      database: envService.get(("database.name")),
-      synchronize: true,
-      entities: [__dirname + './../**/*.entity{.ts,.js}'],
-      logging: process.env.NODE_ENV !== 'production',
-      migrations: [__dirname + './migrations/*{.ts,.js}'],
-
-    }
-    return ormConfig;
-  }
+  useFactory: (configService: ConfigService) => ({
+    type: 'postgres',
+    url: configService.get('DATABASE_URL'),
+    ssl: { rejectUnauthorized: false } ,
+    synchronize: configService.get('NODE_ENV') !== 'production',
+    entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+    logging: configService.get('NODE_ENV') !== 'production',
+    migrations: [__dirname + '/migrations/*{.ts,.js}'],
+  }),
 })
 
 @Module({

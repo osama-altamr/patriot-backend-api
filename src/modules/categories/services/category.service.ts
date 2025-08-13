@@ -14,8 +14,8 @@ export class CategoryService {
     return this.categoryRepo.create(categoryData as any)
   }
 
-  async getAllCategories(): Promise<Category[]> {
-    return this.categoryRepo.findAll()
+  async getAllCategories(search?: string){
+    return this.categoryRepo.getAllCategories(search)
   }
 
   async getCategory(id: string): Promise<Category | null> {

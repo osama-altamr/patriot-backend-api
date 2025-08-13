@@ -1,11 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, HttpCode, HttpStatus, UseGuards, Req } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, HttpCode, HttpStatus, UseGuards, Req, Query } from "@nestjs/common";
 import { ComplaintService } from "../../services/complaint.service"; // Adjust path
 import { CreateComplaintDto } from "../dto/request/create-complaint.dto";
 import { UpdateComplaintDto } from "../dto/request/update-complaint.dto";
 import { Complaint, User } from "src/database"
-import { AuthGuard } from '@nestjs/passport'
 import { CreateComplaintValidation } from "../validation/create-complaint.pipe";
 import { UpdateComplaintValidation } from "../validation/update-complaint.pipe";
+import { CurrentUser } from "@Package/api";
+import { JwtAuthGuard } from "@Package/auth";
+import { parseQuery } from "@Package/api/functions";
+import { GetAllComplaintsDto } from "../dto/request/get-all.dto";
 
 @Controller("complaints")
 export class ComplaintController {
@@ -13,18 +16,29 @@ export class ComplaintController {
 
     @Post()
     @HttpCode(HttpStatus.CREATED)
+    @UseGuards(JwtAuthGuard)
     async createComplaint(
         @Body(CreateComplaintValidation
         ) complaintData: CreateComplaintDto,
-        @Req() req
     ): Promise<Complaint | Complaint[]> {
-        const user = req.user as User
-        return await this.complaintService.createComplaint(complaintData, user);
+        return await this.complaintService.createComplaint(complaintData);
     }
 
     @Get()
-    async getAll(): Promise<Complaint[]> {
-        return await this.complaintService.getAllComplaints();
+    async getAll(
+          @Query() query: GetAllComplaintsDto
+    ) {
+         const q = parseQuery(query)
+        const complaints = await this.complaintService.findAll(q.myQuery, q.pagination)
+        const updatedComplaints = complaints.map(comp => {
+            comp.userId = comp.user?.id
+            comp.closedById = comp.closedBy?.id
+            return comp
+        })
+        return {
+            total: complaints.length,
+            results: updatedComplaints
+        }
     }
 
     @Get(':id')
@@ -33,12 +47,12 @@ export class ComplaintController {
     }
 
     @Patch(':id')
+    @UseGuards(JwtAuthGuard)
     async update(
         @Param('id') idParam: string,
         @Body(UpdateComplaintValidation) updateData: UpdateComplaintDto,
-        @Req() req
+        @CurrentUser() user: User
     ): Promise<Complaint> {
-        const user = req.user as User
         return await this.complaintService.updateComplaint(idParam, updateData, user);
     }
 

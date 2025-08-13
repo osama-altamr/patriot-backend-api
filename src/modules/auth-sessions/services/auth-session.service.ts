@@ -8,11 +8,13 @@ import { RefreshTokenRepository } from '/refresh-tokens/repository/refresh-token
 import { addSeconds, isPast } from 'date-fns';
 import { EnvironmentService } from '@Package/config';
 import { RefreshDto } from '../api/dto/request/refresh.dto';
+import { PermissionRepository } from '/permissions/repository/permission.repository';
 
 @Injectable()
 export class AuthSessionService {
   constructor(
     private readonly userRepo: UserRepository,
+    private readonly permissionRepo: PermissionRepository,
     private readonly refreshTokenRepo: RefreshTokenRepository,
     private readonly authService: AuthService,
     private readonly environmentService: EnvironmentService,
@@ -31,6 +33,11 @@ export class AuthSessionService {
     const user = await this.userRepo.findOneBy({
       email: data.email,
     })
+    if(!user) {
+     throw new BadRequestException()
+    }
+    user.permissions = await this.permissionRepo.findOneByWithPop(user.id)
+  
     if(!await HashService.comparePassword(data.password, user.password)){
       throw new BadRequestException()
     }
@@ -39,6 +46,7 @@ export class AuthSessionService {
       email: user.email,
       role: user.role,
     })
+  
     const refreshToken = await this.authService.generateRefreshToken({
       id: user.id,
       email: user.email,
@@ -54,7 +62,6 @@ export class AuthSessionService {
       user
     })
     
-    console
     return {
       user,
       accessToken,

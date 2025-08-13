@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { StageRepository } from '/stages/repository/stage.repository';
-import { CreateStageDto } from '../api/dto/request/create-stage.dto';
 import { IStage, Stage } from 'src/database';
 
 @Injectable()
@@ -11,9 +10,8 @@ export class StageService {
     return this.stageRepo.create(stage as any)
   }
 
-  async getAllStages(): Promise<Stage[]> {
-    return this.stageRepo.findAll();
-
+  async getAllStages(searchTerm?: string) {
+    return this.stageRepo.getAllStages(searchTerm);
   }
 
   async getStage(id: string) {

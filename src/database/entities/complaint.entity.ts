@@ -16,6 +16,18 @@ export class Complaint extends CommonEntity {
     nullable: true
   })
   fileUrl?: string
+  
+  @Column({
+    type: 'varchar',
+    nullable: true
+  })
+  type?: string
+
+  @Column({
+    type: 'varchar',
+    nullable: true
+  })
+  location?: string
 
    @Column({
     type: 'text',
@@ -28,12 +40,17 @@ export class Complaint extends CommonEntity {
 
    @ManyToOne(() => User, (user) => user.closedComplaints)
    closedBy: User
+
+   userId: string
+   closedById: string
 }
 
 export abstract class IComplaint {
   id: string
   description: string
   fileUrl?: string 
+  location?: string
+  type?: string
   status: ComplaintStatus 
   user?: IUser
   closedBy?: IUser | null 

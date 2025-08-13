@@ -1,4 +1,5 @@
 import { LocalizedString } from '@Package/api/interfaces/localized.interface'
+import { Category, Stage } from 'src/database'
 
 export class UpdateProductDto {
   name?: LocalizedString
@@ -7,4 +8,7 @@ export class UpdateProductDto {
   height?: number
   width?: number
   categoryId?: string
+  category?: Category
+  stageIds?: string[]
+  stages?: Stage[]
 }

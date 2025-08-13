@@ -1,5 +1,5 @@
 import { LocalizedString } from "@Package/api";
-import { MaterialType } from "../../enums/material.enum";
+import { MaterialGlassType, MaterialType } from "../../enums/material.enum";
 
 export class UpdateMaterialDto {
   name?: LocalizedString
@@ -10,4 +10,5 @@ export class UpdateMaterialDto {
   quantity?: number
   type: MaterialType
   location?: string
+  glassType?: MaterialGlassType
 }

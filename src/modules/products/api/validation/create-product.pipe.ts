@@ -12,6 +12,7 @@ export class CreateProductValidation extends BaseValidationPipe<CreateProductDto
       height: number().positive().optional(), 
       width: number().positive().optional(), 
       categoryId: string().uuid(), 
+      stageIds: string().uuid().array(), 
     })
     super(schema)
   }

@@ -2,13 +2,16 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, HttpCode, HttpStatus
 import { ProductService } from "../../services/product.service"; 
 import { CreateProductDto } from "../dto/request/create-product.dto";
 import { UpdateProductDto } from "../dto/request/update-product.dto";
-import { Product } from "src/database"; 
+import { Product, ProductReview } from "src/database"; 
 import { CreateProductValidation } from "../validation/create-product.pipe";
 import { UpdateProductValidation } from "../validation/update-product.pipe";
+import { ProductReviewService } from "/product-reviews/services/product-review.service";
 
 @Controller("products") 
 export class ProductController {
-    constructor(private readonly productService: ProductService) {}
+    constructor(
+        private readonly productService: ProductService,
+    ) {}
 
     @Post()
     async createProduct(@Body(CreateProductValidation) productData: CreateProductDto): Promise<Product| Product[]> {
@@ -16,8 +19,18 @@ export class ProductController {
     }
 
     @Get()
-    async getAll(): Promise<Product[]> {
-        return await this.productService.getAllProducts();
+    async getAll(){
+    const data = await this.productService.getAllProducts()
+    return {
+        total: data.length,
+        results: data
+    }
+    }
+
+
+    @Get(':id/reviews')
+    async getReviews(@Param('id') productId: string,): Promise<ProductReview[]> {
+        return await this.productService.getReviews(productId);
     }
 
     @Get(':id')

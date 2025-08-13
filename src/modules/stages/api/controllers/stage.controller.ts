@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { StageService } from "/stages/services/stage.service";
 import { CreateStageDto } from "../dto/request/create-stage.dto";
 import { CreateStageValidation } from "../validation/create-stage.pipe";
@@ -14,8 +14,8 @@ export class StageController {
         }
     
         @Get()
-        async getAll(){
-            return await this.stageService.getAllStages()
+        async getAll(@Query('search') searchTerm?: string){
+        return await this.stageService.getAllStages(searchTerm)
         }
     
         @Get(':id')

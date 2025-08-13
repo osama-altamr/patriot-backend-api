@@ -4,9 +4,10 @@ import { AuthSessionController } from './api/controllers/auth-sessions.controlle
 import { UserModule } from '/users/user.module';
 import { AuthModule } from '/auth/auth.module';
 import { RefreshTokenModule } from '/refresh-tokens/refresh-token.module';
+import { PermissionModule } from '/permissions/permission.module';
 
 @Module({
-  imports: [UserModule, AuthModule, RefreshTokenModule],
+  imports: [UserModule, AuthModule, RefreshTokenModule,PermissionModule ],
   controllers: [AuthSessionController],
   providers: [AuthSessionService],
   exports: [AuthSessionService],

@@ -9,6 +9,8 @@ export class UpdateComplaintValidation extends BaseValidationPipe<UpdateComplain
       description: string().min(10).optional(),
       fileUrl: string().url().optional().nullable(),
       status: nativeEnum(ComplaintStatus).optional(),
+      type: string().optional(),
+      location: string().optional(),
     })
     super(schema);
   }

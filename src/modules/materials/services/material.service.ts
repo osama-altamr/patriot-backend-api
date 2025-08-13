@@ -13,10 +13,11 @@ export class MaterialService {
   ) {}
 
   async create(body: CreateMaterialDto){
+    console.log(body)
     return await this.materialRepo.create(body as unknown as Material)
   }
   async getAllMaterials(): Promise<Material[]> {
-    return this.materialRepo.findAll()
+    return this.materialRepo.findAll({})
   }
 
   async getMaterial(id: string): Promise<Material | null> {

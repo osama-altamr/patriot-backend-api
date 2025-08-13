@@ -4,13 +4,27 @@ import { RefreshToken } from './refresh-token.entity'
 import { Permission } from './permission.entity'
 import { CommonEntity } from './common.entity'
 import { Complaint } from './complaint.entity'
+import { Notification } from './notification.entity'
+import { State, City } from './'
+
+interface IAddress {
+  stateId: string
+  state: State
+  cityId?: string
+  city: City
+  street1: string
+  street2?: string
+  postalCode: string
+  apartment?: string
+  complex?: string
+}
 
 @Entity()
 export class User extends CommonEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
-  @Column({type: "text"})
+  @Column({type: "text", nullable: true })
   name: string
 
   @Column({ type: "text" })
@@ -18,6 +32,15 @@ export class User extends CommonEntity {
 
   @Column({ type: "text" })
   password: string
+
+  @Column({ type: "json", nullable: true  })
+  address: IAddress
+
+  @Column({ nullable: true })
+  resetPasswordCode: string | null;
+
+  @Column({ nullable: true })
+  resetPasswordCodeExpiresAt: Date | null;
 
   @Column({ type: "text", nullable: true  })
   fcmToken: string
@@ -35,7 +58,7 @@ export class User extends CommonEntity {
   refreshTokens: RefreshToken[]
 
   @OneToMany(() => Permission, (permission) => permission.user)
-  permissions: Permission[]
+  permissions: Permission
 
   @OneToMany(() => Complaint, (complaint) => complaint.user)
   complaints: Complaint[]
@@ -43,6 +66,9 @@ export class User extends CommonEntity {
   // if role => Admin
   @OneToMany(() => Complaint, (complaint) => complaint.closedBy)
   closedComplaints: Complaint[]
+
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notifications: Notification[]
 
   @Column({ default: true })
   isActive: boolean
@@ -58,4 +84,5 @@ export abstract class IUser {
   phoneNumber?: string
   fcmToken?: string
   refreshTokens?: RefreshToken[]
+  address?: IAddress
 }

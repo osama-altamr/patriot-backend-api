@@ -10,7 +10,16 @@ import { ProductModule } from '/products/product.module'
 import { ComplaintModule } from '/complaints/complaint.module'
 import { MaterialModule } from '/materials/material.module'
 import { CategoryModule } from '/categories/category.module'
-
+import { OrdersModule } from '/orders/orders.module'
+import { PermissionModule } from '/permissions/permission.module'
+import { MailerModule } from '/mailer/mailer.module'
+import { NotificationModule } from '/notifications/notification.module'
+import { HomeModule } from '/home/home.module'
+import { AWSModule } from '/aws/aws.module'
+import { ProductReviewModule } from '/product-reviews/product-review.module'
+import { ReportModule } from '/reports/report.module'
+import { StateModule } from '/states/state.module'
+import { CityModule } from '/city/city.module'
 
 @Module({
   imports: [
@@ -24,7 +33,17 @@ import { CategoryModule } from '/categories/category.module'
     ProductModule,
     ComplaintModule,
     MaterialModule,
+    MailerModule,
     CategoryModule,
+    PermissionModule,
+    OrdersModule,
+    NotificationModule,
+    HomeModule,
+    AWSModule,
+    ProductReviewModule,
+    ReportModule,
+    StateModule,
+    CityModule,
   ],
 })
 export class AppModule {}

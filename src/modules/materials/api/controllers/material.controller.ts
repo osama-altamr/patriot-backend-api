@@ -10,14 +10,20 @@ import { UpdateMaterialValidation } from "../validation/update-material.pipe";
 export class MaterialController {
     constructor(private readonly materialService: MaterialService){}
     @Post()
+    
     async create(
         @Body(CreateMaterialValidation) data: CreateMaterialDto
     ){
+        console.log(data)
        return await this.materialService.create(data)
     }
         @Get()
-        async getAll(): Promise<Material[]> {
-            return await this.materialService.getAllMaterials();
+        async getAll() {
+            const data = await this.materialService.getAllMaterials();
+            return {
+                results: data,
+                total: data.length
+            }
         }
     
         @Get(':id')
