@@ -11,7 +11,7 @@ export class OrderItemAction extends CommonEntity {
 
     @ManyToOne(() => OrderItem)
     @JoinColumn({ name: 'order_item_id' })
-    orderItem: OrderItem
+    orderItem: OrderItem[]
 
     @ManyToOne(() => User)
     @JoinColumn({ name: 'employee_id' })

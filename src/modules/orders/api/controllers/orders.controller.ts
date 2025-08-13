@@ -15,7 +15,7 @@ import { UpdateOrderItemDto } from '../dto/update-order-item.dto'
 import { OrderItemService } from '/orders/services/order-items.service'
 import { GlassCuttingDto } from '../dto/glass-cutting.dto'
 
-@AuthControllerWeb({prefix: "orders"})
+@Controller("orders")
 export class OrdersController {
   constructor(
     private readonly ordersService: OrdersService,
@@ -98,10 +98,7 @@ export class OrdersController {
       itemId, orderItemData)
   }
 
-
-
-
-    // @Post(':id/items')
+  // @Post(':id/items')
   // createOrderItem(
   //   @Param('id') id: string,
   //   @Body() orderItemData: Partial<OrderItem>

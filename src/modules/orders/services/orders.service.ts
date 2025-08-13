@@ -20,6 +20,7 @@ import { StateService } from '/states/services/state.service'
 import { CityService } from '/city/services/city.service'
 import * as path from 'path'; 
 import { Worker } from 'worker_threads';
+import { OrderItemActionRepository } from '../repository/order-item-action.repository'
 
 type PackableItem = {
     id: any;
@@ -32,6 +33,7 @@ export let glassCuttingData: any = {}
 export class OrdersService {
     constructor(private readonly ordersRepository: OrdersRepository,
         private readonly orderItemRepository: OrderItemRepository,
+        private readonly orderItemActionRepo: OrderItemActionRepository,
         private readonly orderItemService: OrderItemService,
         private readonly userService: UserService,
         private readonly orderCodeService: OrderCodeService,
@@ -410,10 +412,8 @@ export class OrdersService {
             ref: newRef,
             user,
         } as any) as Order
-        for (const item of createOrderDto.items) {
-            console.log(order)
-            await this.orderItemService.createOrderItem(order.id, item)
-        }
+
+        await Promise.all(createOrderDto.items.map(async item => await this.orderItemService.createOrderItem(order.id, item)))
         await this.notificationService.createNotification({
             title: {
                 en: `New Order #${order.ref }`,
@@ -455,6 +455,11 @@ export class OrdersService {
             order.address.state = await this.stateService.getState(order.address.stateId)
         }
 
+        order.items = await Promise.all(order.items.map(async item => {
+            item.orderItemActions = await this.orderItemActionRepo.getItemActions(item.id) as any
+            return item
+          }))
+        
         return order
     }
 

@@ -12,6 +12,7 @@ export class UpdateProductValidation extends BaseValidationPipe<UpdateProductDto
        height: number().positive().optional().nullable(), 
        width: number().positive().optional().nullable(), 
        categoryId: string().uuid().optional(), 
+       stageIds: string().uuid().array(), 
     })
     super(schema)
   }

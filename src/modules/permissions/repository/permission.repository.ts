@@ -67,12 +67,21 @@ export class PermissionRepository extends BaseRepository<Permission> {
 
       return { accessLevelSummary, breakdownByType: sortedResult }
   }
+
   async getAllDrivers(){
     return await this.repository.find({
       where: {
         accessType: PermissionAccessType.driver
       },
       relations: ['user']
+    })
+  }
+
+  async findOneByWithPop(userId: string){
+    return await this.repository.findOne({
+      where: {
+        user: {id: userId}
+      },
     })
   }
 

@@ -6,9 +6,10 @@ import { Product } from 'src/database';
 import { ProductRepository } from './repository/product.repository';
 import { CategoryModule } from '/categories/category.module';
 import { ProductReviewModule } from '/product-reviews/product-review.module';
+import { StageModule } from '/stages/stage.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product]), CategoryModule, ProductReviewModule],
+  imports: [TypeOrmModule.forFeature([Product]), CategoryModule, ProductReviewModule, StageModule],
   providers: [ProductService, ProductRepository],
   controllers: [ProductController],
   exports: [ProductService, ProductRepository],

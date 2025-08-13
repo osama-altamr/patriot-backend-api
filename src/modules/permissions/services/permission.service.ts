@@ -22,7 +22,7 @@ export class PermissionService {
      
      permissionData.user = user
      permissionData.stage = stage
-    return this.permissionRepo.create(permissionData as any)
+    return await this.permissionRepo.create(permissionData as any)
   }
 
   async getAllPermissions(){
