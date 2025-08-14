@@ -1,10 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany, OneToOne } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany, OneToOne, ManyToMany, JoinTable } from 'typeorm'
 import { CommonEntity } from './common.entity'
 import { Order } from './order.entity'
 import { Category } from './category.entity'
 import { Product } from './product.entity'
 import { Stage } from './stage.entity'
 import { OrderItemAction } from './order-item-action.entity'
+import { Material } from './material.entity'
 
 export enum OrderItemStatus {
     pending = 'pending',
@@ -20,6 +21,14 @@ export class OrderItem extends CommonEntity {
     @ManyToOne(() => Order)
     @JoinColumn({ name: 'order_id' })
     order: Order
+
+    @ManyToMany(() => Stage) 
+    @JoinTable({
+        name: 'order_item_stages', 
+        joinColumn: { name: 'order_item_id' },
+        inverseJoinColumn: { name: 'stage_id' }
+    })
+    stages: Stage[];
 
     @ManyToOne(() => Category)
     @JoinColumn({ name: 'category_id' })
@@ -48,8 +57,9 @@ export class OrderItem extends CommonEntity {
     @JoinColumn({ name: 'product_id' })
     product: Product
     
-    @OneToMany(() => Stage, (stage) => stage.orderItem)
-    stages: Stage[];
+    @ManyToOne(() => Material)
+    @JoinColumn({ name: 'material_id' })
+    material: Material
 
     @ManyToOne(()=> Stage)
     @JoinColumn({ name: 'current_stage_id' })
@@ -73,4 +83,5 @@ export abstract class IOrderItem {
     product: string
     price: number
     note?: string
+    material: Material
 } 

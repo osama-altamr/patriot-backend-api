@@ -50,8 +50,19 @@ export class OrdersRepository extends BaseRepository<Order> {
     async findAllForUser(query: QueryValue<GetAllOrdersDto>, pagination: Pagination){
         const queryBuilder = this.orderRepository.createQueryBuilder('order');
         queryBuilder.leftJoinAndSelect('order.user', 'user');
+        queryBuilder.leftJoinAndSelect('order.driver', 'driver');
+        queryBuilder.leftJoinAndSelect('order.items', 'items');
+        queryBuilder.leftJoinAndSelect('items.product', 'product');
+        queryBuilder.leftJoinAndSelect('items.category', 'category');
+        queryBuilder.leftJoinAndSelect('items.currentStage', 'currentStage');
+        queryBuilder.leftJoinAndSelect('items.stages', 'stages');
+        queryBuilder.leftJoinAndSelect('items.material', 'material');
         if (query.status) {
             queryBuilder.andWhere('order.status = :status', { status: query.status });
+        }
+
+        if (query.driverId) {
+          queryBuilder.andWhere('driver.id = :driverId', { driverId: query.driverId });
         }
 
         if (query.priority) {
@@ -70,7 +81,6 @@ export class OrdersRepository extends BaseRepository<Order> {
           }
 
           queryBuilder.orderBy('order.createdAt', 'DESC');
-      
           console.log('Executing SQL:', queryBuilder.getSql())
           return await queryBuilder.getMany();
     }
@@ -81,10 +91,11 @@ export class OrdersRepository extends BaseRepository<Order> {
                 user: true,
                 driver: true,
                 items: {
+                  product: true,
+                  category: true,
+                  currentStage: true,
                   stages: true,
-                   product: true,
-                    category: true,
-                    currentStage: true,
+                  material: true,
                 }
             }
         })

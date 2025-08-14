@@ -46,43 +46,42 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
         material= await this.materialRepo.findOneById(orderItemData.materialId)
     }
 
-    orderItemData.stages = product.stages
-
-    console.log(orderItemData.stages)
     const orderItem  = await this.orderItemRepository.create({
         ...orderItemData,
+        stages: product.stages,
+        material,
         order: { id: orderId } as any,
         product,
         status: OrderItemStatus.pending,
         price: 0,
         category,
     } as any) as OrderItem
-
     const qrCode = await this.qrcodeService.generateQRCode(`http://locahost:3000/confirm-state?orderId=${orderId}&orderItem=${orderItem.id}`)
     const updatedOrderItem =  await this.orderItemRepository.update(orderItem.id, {
         qrCode,
     })
-    console.log(product.stages, 'Productsssss', product.id)
     return updatedOrderItem
 }
 
-async updateOrderItem(orderId: string, itemId:string, orderItemData: UpdateOrderItemDto): Promise<OrderItem> {
- await this.ordersRepository.findOneById(orderId)
- 
+async getOrderItem(orderItemId: string): Promise<OrderItem> {
+    return  await this.orderItemRepository.findOneByIdWithPop(orderItemId)
+}
+
+async updateOrderItem( itemId:string, orderItemData: UpdateOrderItemDto): Promise<OrderItem> {
+
  const orderItem = await this.orderItemRepository.findOneBy({ id: itemId })
-  console.log(orderItem)
   if (!orderItem) {
     throw new NotFoundException('Order item not found');
   }
 
+  console.log(orderItem.order , 'Orderrrrrrrrrrrrrrrr')
 
   const stage = await this.stageRepo.findOneById(orderItemData.currentStageId);
   if (!stage) {
     throw new NotFoundException('Stage not found');
   }
-  console.log(stage)
 
-  const employee = await this.userService.getMe(orderItemData.employeeId);
+  const employee = await this.permissionService.getUserByStage(stage.id)
   if (!employee) {
     throw new NotFoundException('Employee not found');
   }
@@ -109,7 +108,7 @@ async updateOrderItem(orderId: string, itemId:string, orderItemData: UpdateOrder
         })
         dataToUpdate.status = OrderItemStatus.completed
         await this.orderItemRepository.update(orderItem.id,dataToUpdate)
-        await this.checkCompletedOrder(orderId)
+        await this.checkCompletedOrder(orderItem.order.id)
     return await this.orderItemRepository.findOneByIdWithPop(orderItem.id)
   }
 
@@ -126,7 +125,7 @@ async updateOrderItem(orderId: string, itemId:string, orderItemData: UpdateOrder
     dataToUpdate.currentStage = stage 
 
      await this.orderItemRepository.update(orderItem.id,dataToUpdate)
-     await this.checkCompletedOrder(orderId)
+     await this.checkCompletedOrder(orderItem.order.id)
      return await this.orderItemRepository.findOneByIdWithPop(orderItem.id)
 }
     async checkCompletedOrder(orderId: string) {

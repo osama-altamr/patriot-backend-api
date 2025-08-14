@@ -181,8 +181,8 @@ export class OrdersService {
         }
         
         const config = {
-            iterations: 3000,
-            populationSize: 500, 
+            iterations: 7000,
+            populationSize: 1000, 
             mutationChance: 0.4,
             crossoverChance: 0.85,
             fittestAlwaysSurvives: true,
@@ -495,13 +495,31 @@ export class OrdersService {
 
     async getOrderItems(orderId: string, currentStageId: string): Promise<OrderItem[]> {
         await this.findOne(orderId)
-        return await this.orderItemRepository.findAll({
-            filter: {
-                where: {
-                    order: { id: orderId },
-                    currentStage: { id: currentStageId }
-                }
-            }
+        return await this.orderItemRepository.findAllWithPop({
+            order: { id: orderId },
+            currentStage: { id: currentStageId }
         })
+    }
+
+    async getItems(currentStageId: string, employeeId: string): Promise<OrderItem[]> {
+        const query: any = {}
+        if(currentStageId) {
+            query.currentStage = { id: currentStageId }
+        }
+        if(employeeId) {
+            query.employee = { id: employeeId }
+        }
+        return await this.orderItemRepository.findAllWithPop(query)
+    }
+
+    async getMaterialGrid () {
+        glassCuttingData.packableItems = await Promise.all(glassCuttingData.packedItems.map(async packItem => 
+            {
+                packItem.item = await this.orderItemService.getOrderItem(packItem.id)
+                delete packItem.item.qrCode
+                return packItem
+            }
+        ) )
+        return glassCuttingData
     }
 } 

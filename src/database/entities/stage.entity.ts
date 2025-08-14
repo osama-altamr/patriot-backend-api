@@ -27,10 +27,6 @@ export class Stage extends CommonEntity {
   })
   estimatedTimeMinutes?: number
 
-  @ManyToOne(() => OrderItem, (orderItem) => orderItem.stages)
-  @JoinColumn({ name: 'order_item_id' })
-  orderItem: OrderItem;
-
   @ManyToMany(() => Product, (product) => product.stages)
   products: Product[];
 }

@@ -23,11 +23,11 @@ export class CreateOrderValidation extends BaseValidationPipe<CreateOrderDto> {
                 productId: string().optional(),
                 width: number(),
                 height: number(),
-                categoryId: string().optional(),
-                materialId: string().optional(),
+                categoryId: string().optional().nullable(),
+                materialId: string().optional().nullable(),
             }).array(),
             userId:  string(),
-            driverId: string().optional(),
+            driverId: string().optional().nullable(),
         })
         super(schema)
     }

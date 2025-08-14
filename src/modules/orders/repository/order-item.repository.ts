@@ -12,12 +12,17 @@ export class OrderItemRepository extends BaseRepository<OrderItem> {
     ) {
         super(orderItemRepository)
     }
+
+   async save(item: object){
+      await this.orderItemRepository.save(item)
+    }
+  
     async findOneBy(query: object) {
         try {
             console.log(query)
           return await this.repository.findOne({
             where: { ...query },
-            relations: ['stages', 'currentStage'],
+            relations: ['stages', 'currentStage', 'order'],
           });
         } catch (error) {
           if (error instanceof EntityPropertyNotFoundError) {
@@ -28,12 +33,18 @@ export class OrderItemRepository extends BaseRepository<OrderItem> {
           throw error;
         }
       }
-      async findOneByIdWithPop(id: string) {
-        return this.repository.findOne({
-            where: { id },
-            relations: ['stages', 'currentStage', 'orderItemActions.stage'],
-        })
+    async  findAllWithPop(query: object){
+        return this.repository.find({
+          where: query,
+          relations: ['stages', 'currentStage', 'product', 'category', 'material', 'orderItemActions.stage'],
+      }) 
       }
+    async findOneByIdWithPop(id: string) {
+     return this.repository.findOne({
+          where: { id },
+          relations: ['stages', 'currentStage', 'orderItemActions.stage', 'product', 'category', 'material'],
+     })
+  }
     
 
 }

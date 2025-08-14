@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, UseGuards, UseInterceptors } from "@nestjs/common";
 import { MaterialService } from "/materials/services/material.service";
 import { CreateMaterialDto } from "../dto/request/create-material.dto";
 import { CreateMaterialValidation } from "../validation/create-material.pipe";
@@ -18,12 +18,8 @@ export class MaterialController {
        return await this.materialService.create(data)
     }
         @Get()
-        async getAll() {
-            const data = await this.materialService.getAllMaterials();
-            return {
-                results: data,
-                total: data.length
-            }
+        async getAll(@Query('search') searchTerm?: string) {
+            return await this.materialService.getAllMaterials(searchTerm);
         }
     
         @Get(':id')

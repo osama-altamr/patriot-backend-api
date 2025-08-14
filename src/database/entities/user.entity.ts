@@ -33,7 +33,7 @@ export class User extends CommonEntity {
   @Column({ type: "text" })
   password: string
 
-  @Column({ type: "json", nullable: true  })
+  @Column({ type: "jsonb",  nullable: true  })
   address: IAddress
 
   @Column({ nullable: true })

@@ -42,7 +42,7 @@ export class UserService {
        if(user.address && user.address.stateId){
          user.address.state = await this.stateService.getState(user.address.stateId) 
        }
-       const permission = await this.permissionRepo.findOneBy({
+       const permission = await this.permissionRepo.findOneByWithPop({
         user: {id: user.id}
       })
       user.permissions = permission as any
@@ -55,7 +55,7 @@ export class UserService {
     const user = await this.userRepo.findOneBy({
       email,
     })
-    const permission = await this.permissionRepo.findOneBy({
+    const permission = await this.permissionRepo.findOneByWithPop({
       user: {id: user.id}
     })
     user.permissions = permission as any
@@ -64,16 +64,20 @@ export class UserService {
 
   async getMe(id: string): Promise<IUser> {
     const user = await this.userRepo.findOneById(id)
+    const permission = await this.permissionRepo.findOneByWithPop({
+      user: { id: user.id }
+    })
+    user.permissions = permission as any
+    if(!user.address){
+      return user
+    }
     if(user.address && user.address.cityId){
       user.address.city = await this.cityService.getCity(user.address.cityId)
      }
      if(user.address && user.address.stateId){
        user.address.state = await this.stateService.getState(user.address.stateId) 
      }
-     const permission = await this.permissionRepo.findOneBy({
-      user: {id: user.id}
-    })
-    user.permissions = permission as any
+
      return user
   }
 
@@ -85,8 +89,8 @@ export class UserService {
     if(user.address && user.address.stateId){
       user.address.state = await this.stateService.getState(user.address.stateId) 
     }
-    const permission = await this.permissionRepo.findOneBy({
-      user: {id: user.id}
+    const permission = await this.permissionRepo.findOneByWithPop({
+      user: { id: user.id }
     })
     user.permissions = permission as any
     return user
@@ -99,16 +103,19 @@ export class UserService {
   }> {
     data.password = await HashService.hashPassword(data.password)
     const user =  await this.userRepo.create(data) as User
+    
     const accessToken =  await this.authService.generateAccessToken({
       id: user.id,
       email: user.email,
       role: user.role,
     })
+
     const refreshToken = await this.authService.generateRefreshToken({
       id: user.id,
       email: user.email,
       role: user.role,
     })
+    
     const issuedAt = new Date()
 
     await this.refreshTokenRepo.create({
@@ -150,7 +157,7 @@ export class UserService {
     
     © ${new Date().getFullYear()} Patriot Platform. All rights reserved.
       `,
-      to, 
+      to,   
       html: `
     <!DOCTYPE html>
     <html>
