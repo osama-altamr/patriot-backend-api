@@ -16,6 +16,7 @@ export * from "./product-review.entity"
 export * from "./report.entity"
 export * from "./state.entity"
 export * from "./city.entity"
+export * from "./favorite.entity"
 
 
 

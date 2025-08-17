@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, HttpCode, HttpStatus } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, HttpCode, HttpStatus, Query } from "@nestjs/common";
 import { ProductService } from "../../services/product.service"; 
 import { CreateProductDto } from "../dto/request/create-product.dto";
 import { UpdateProductDto } from "../dto/request/update-product.dto";
@@ -19,8 +19,8 @@ export class ProductController {
     }
 
     @Get()
-    async getAll(){
-    const data = await this.productService.getAllProducts()
+    async getAll(@Query('categoryId') categoryId?: string){
+    const data = await this.productService.getAllProducts(categoryId)
     return {
         total: data.length,
         results: data

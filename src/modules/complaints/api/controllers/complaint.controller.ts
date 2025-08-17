@@ -51,9 +51,8 @@ export class ComplaintController {
     async update(
         @Param('id') idParam: string,
         @Body(UpdateComplaintValidation) updateData: UpdateComplaintDto,
-        @CurrentUser() user: User
     ): Promise<Complaint> {
-        return await this.complaintService.updateComplaint(idParam, updateData, user);
+        return await this.complaintService.updateComplaint(idParam, updateData);
     }
 
     @Delete(':id')

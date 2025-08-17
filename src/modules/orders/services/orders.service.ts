@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { OrdersRepository } from '../repository/orders.repository'
 import { CreateOrderDto } from '../api/dto/create-order.dto'
 import { UpdateOrderDto } from '../api/dto/update-order.dto'
 import { Order, OrderStatus } from '../../../database/entities/order.entity'
-import { OrderItem } from '../../../database/entities/order-item.entity'
+import { OrderItem, OrderItemStatus } from '../../../database/entities/order-item.entity'
 import { OrderItemRepository } from '../repository/order-item.repository'
 import { Pagination, QueryValue } from '@Package/api'
 import { GetAllOrdersDto } from '../api/dto/get-all.dto'
@@ -21,6 +21,8 @@ import { CityService } from '/city/services/city.service'
 import * as path from 'path'; 
 import { Worker } from 'worker_threads';
 import { OrderItemActionRepository } from '../repository/order-item-action.repository'
+import * as fs from 'fs/promises';
+import { ProductService } from '/products/services/product.service'
 
 type PackableItem = {
     id: any;
@@ -28,7 +30,7 @@ type PackableItem = {
     height: number;
 }
 export let glassCuttingData: any = {} 
-
+const CUTTING_RESUL_FILE_PATH = 'glassCuttingResults.json'
 @Injectable()
 export class OrdersService {
     constructor(private readonly ordersRepository: OrdersRepository,
@@ -41,7 +43,7 @@ export class OrdersService {
         private readonly materialService: MaterialService,
         private readonly stateService: StateService,
         private readonly cityService: CityService,
-
+        private readonly productService: ProductService,
     ) { }
 
     async startGlassCuttingJob(inputData: GlassCuttingDto): Promise<void> {
@@ -49,7 +51,11 @@ export class OrdersService {
         const width = inputData.width ?? material.width;
         const height = inputData.height ?? material.height;
     
-        const allItems = (await this.orderItemRepository.findAll({})).map(item => ({
+        const allItems = (await this.orderItemRepository.findAll({
+            filter: {
+                where: { status: OrderItemStatus.pending }
+            }
+        })).map(item => ({
             id: item.id.toString(),
             width: item.width,
             height: item.height,
@@ -72,8 +78,8 @@ export class OrdersService {
             console.log(`Worker job completed. Saving results...`);
             try {
                 const data = result.data;
-                glassCuttingData = data
-                console.log(`Results saved to database. Result ID: ${data}`);
+                await fs.writeFile(CUTTING_RESUL_FILE_PATH, JSON.stringify(data, null, 2));
+               console.log(`Results saved to database. Result ID: ${data}`);
             } catch(dbError) {
                 console.log('Failed to save the result to the database.', dbError.stack);
             }
@@ -96,7 +102,7 @@ export class OrdersService {
             height, 
             packableItems,
             originalMaterialId: inputData.materialId
-        });
+        })
       }
 
     private crossover(
@@ -471,7 +477,6 @@ export class OrdersService {
                 updateOrderDto.driver = {id: updateOrderDto.driverId}
                 updateOrderDto.status = OrderStatus.outForDelivery
                 updateOrderDto.outForDeliveryAt = new Date()
-                await this.orderCodeService.createOrderCode({ order, user })
             }
             delete updateOrderDto.driverId;
         }
@@ -512,7 +517,16 @@ export class OrdersService {
         return await this.orderItemRepository.findAllWithPop(query)
     }
 
+    async getOrderItem(id: string): Promise<OrderItem> {
+        return await this.orderItemService.getOrderItem(id)
+    }
+
+
     async getMaterialGrid () {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const filePath = path.join(process.cwd(), 'glassCuttingResults.json');
+        const fileData = await fs.readFile(filePath, 'utf-8');
+        const glassCuttingData = JSON.parse(fileData);
         glassCuttingData.packableItems = await Promise.all(glassCuttingData.packedItems.map(async packItem => 
             {
                 packItem.item = await this.orderItemService.getOrderItem(packItem.id)
@@ -521,5 +535,11 @@ export class OrdersService {
             }
         ) )
         return glassCuttingData
+    }
+
+    async deleteResult () {
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        const filePath = path.join(process.cwd(), 'glassCuttingResults.json');
+        await fs.writeFile(filePath, JSON.stringify({}, null, 2));
     }
 } 

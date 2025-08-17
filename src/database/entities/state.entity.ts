@@ -14,7 +14,7 @@ export class State extends CommonEntity {
 
   @Column({ type: 'boolean', default: true })
   isActive: boolean
-
+  
   @OneToMany(() => City, (city) => city.state)
   cities: City[]
 }

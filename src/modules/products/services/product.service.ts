@@ -31,8 +31,8 @@ export class ProductService {
     return await this.productRepo.create(product)
   }
 
-  async getAllProducts(): Promise<Product[]> {
-    const products = await this.productRepo.findAllWithPop()
+  async getAllProducts(categoryId: string): Promise<Product[]> {
+    const products = await this.productRepo.findAllWithPop(categoryId)
     const updatedProducts = await Promise.all( products.map(async product => {
       const productStats = await this.productReviewService.getProductRatingStats(product.id)
       product.ratingsQuantity =productStats.ratingsQuantity

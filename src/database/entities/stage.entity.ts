@@ -21,6 +21,9 @@ export class Stage extends CommonEntity {
   })
   imageUrl?: string
 
+  @Column({ type: 'int',  nullable: true })
+  order: number;
+
   @Column({ 
     type: 'integer',
     nullable: true,
@@ -36,4 +39,5 @@ export abstract class IStage {
   name: LocalizedString
   description?: LocalizedString
   imageUrl?: string
+  order?: number
 }

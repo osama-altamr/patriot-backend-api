@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { OrdersRepository } from '../repository/orders.repository'
 import { CreateOrderItemDto } from '../api/dto/create-order.dto'
 import { OrderItem, OrderItemStatus } from '../../../database/entities/order-item.entity'
@@ -16,6 +16,7 @@ import { CategoryRepository } from '/categories/repository/category.repository'
 import { MaterialRepository } from '/materials/repository/material.repository'
 import { PermissionService } from '/permissions/services/permission.service'
 import { NotificationRepository } from '/notifications/repository/notification.repository'
+import { CreateOrderItemAction } from '../api/dto/create-order-item-action.dto'
 @Injectable()
 export class OrderItemService {
     constructor(private readonly ordersRepository: OrdersRepository,
@@ -24,7 +25,6 @@ export class OrderItemService {
         private readonly materialRepo: MaterialRepository,
         private readonly permissionService: PermissionService,
         private readonly notificationRepo: NotificationRepository,
-
         private readonly productService: ProductService,
         private readonly userService: UserService,
         private readonly qrcodeService: QrcodeService,
@@ -46,9 +46,11 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
         material= await this.materialRepo.findOneById(orderItemData.materialId)
     }
 
+    const stages = product.stages
     const orderItem  = await this.orderItemRepository.create({
         ...orderItemData,
-        stages: product.stages,
+        stages,
+        currentStage: stages[0],
         material,
         order: { id: orderId } as any,
         product,
@@ -63,71 +65,30 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
     return updatedOrderItem
 }
 
-async getOrderItem(orderItemId: string): Promise<OrderItem> {
-    return  await this.orderItemRepository.findOneByIdWithPop(orderItemId)
-}
-
-async updateOrderItem( itemId:string, orderItemData: UpdateOrderItemDto): Promise<OrderItem> {
-
- const orderItem = await this.orderItemRepository.findOneBy({ id: itemId })
-  if (!orderItem) {
-    throw new NotFoundException('Order item not found');
-  }
-
-  console.log(orderItem.order , 'Orderrrrrrrrrrrrrrrr')
-
-  const stage = await this.stageRepo.findOneById(orderItemData.currentStageId);
-  if (!stage) {
-    throw new NotFoundException('Stage not found');
-  }
-
-  const employee = await this.permissionService.getUserByStage(stage.id)
-  if (!employee) {
-    throw new NotFoundException('Employee not found');
-  }
-  console.log(employee)
-  
-   let dataToUpdate: any = {}
-   if(!orderItem.currentStage && orderItemData.currentStageId){
-    await this.orderItemActionRepository.create({
-        startsAt: new Date(),
-        stage: { id: stage.id },
-        employee: { id: employee.id },
-        orderItem: { id: orderItem.id }
-    } as any)
-    dataToUpdate.status = OrderItemStatus.inProgress
-   } else {
-    const currentAction = await this.orderItemActionRepository.findOneBy({
-        orderItem: { id: orderItem.id },
-        stage: { id: orderItem.currentStage.id },
-    })
-    if(orderItemData.status === OrderItemStatus.completed &&
-         orderItem.currentStage.id === orderItemData.currentStageId ){
-        await this.orderItemActionRepository.update(currentAction.id, {
-            endsAt: new Date()
-        })
-        dataToUpdate.status = OrderItemStatus.completed
-        await this.orderItemRepository.update(orderItem.id,dataToUpdate)
-        await this.checkCompletedOrder(orderItem.order.id)
-    return await this.orderItemRepository.findOneByIdWithPop(orderItem.id)
-  }
-
-        await this.orderItemActionRepository.update(currentAction.id, {
-            endsAt: new Date()
-        })
-        await this.orderItemActionRepository.create({
-            startsAt: new Date(),
-            stage: { id: stage.id },
-            employee: { id: employee.id },
-            orderItem: { id: orderItem.id }
-        } as any)
+    async getOrderItem(orderItemId: string): Promise<OrderItem> {
+        return await this.orderItemRepository.findOneByIdWithPop(orderItemId)
     }
-    dataToUpdate.currentStage = stage 
 
-     await this.orderItemRepository.update(orderItem.id,dataToUpdate)
-     await this.checkCompletedOrder(orderItem.order.id)
-     return await this.orderItemRepository.findOneByIdWithPop(orderItem.id)
-}
+  async updateOrderItem( itemId:string, orderItemData: UpdateOrderItemDto): Promise<OrderItem> {
+    const orderItem = await this.orderItemRepository.findOneBy({ id: itemId })
+    if (!orderItem) {
+        throw new NotFoundException('Order item not found');
+    }
+
+    if (orderItemData.currentStageId !== undefined) {
+        if (orderItemData.currentStageId === null) {
+            orderItemData.currentStage = null;
+        } else {
+            orderItemData.currentStage = await this.stageRepo.findOneById(orderItemData.currentStageId);
+        }
+        delete orderItemData.currentStageId;
+    }
+
+    const updatedItem = await this.orderItemRepository.update(orderItem.id, orderItemData)
+    await this.checkCompletedOrder(orderItem.order.id)
+    return updatedItem
+    }
+
     async checkCompletedOrder(orderId: string) {
        const order =  await this.ordersRepository.findOneById(orderId)
        const completedItems = order.items.filter(item => item.status === OrderItemStatus.completed)
@@ -176,5 +137,33 @@ async updateOrderItem( itemId:string, orderItemData: UpdateOrderItemDto): Promis
         user: order.user,
       });
        }
+    }
+
+    async createAction(itemId: string, reqData: CreateOrderItemAction){
+        const orderItem = await this.orderItemRepository.findOneBy({ id: itemId })
+        if (!orderItem) {
+            throw new NotFoundException('Order item not found');
+        }
+
+     const employee = await this.permissionService.getUserByStage(orderItem.currentStage.id)
+     if (!employee) {
+       throw new NotFoundException('Employee not found');
+     }
+
+    if(reqData.isStart){
+        return await this.orderItemActionRepository.create({
+                startsAt: new Date(),
+                stage: { id: orderItem.currentStage.id },
+                employee: { id: employee.id },
+                orderItem: { id: orderItem.id }
+            } as any)
+        }
+        const currentAction = await this.orderItemActionRepository.findOneBy({
+            orderItem: { id: orderItem.id },
+            stage: { id: orderItem.currentStage.id },
+          })
+       return  await this.orderItemActionRepository.update(currentAction.id, {
+           endsAt: new Date()
+       })
     }
 } 

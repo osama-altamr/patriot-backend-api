@@ -1,8 +1,7 @@
-import { IUser,  OrderItemStatus, Stage } from "src/database"
+import { OrderItemStatus, Stage } from "src/database"
 
 export class UpdateOrderItemDto {
-    currentStage?: Stage
-    currentStageId?: string
-    employee?: IUser 
+    currentStage?: Stage | null
+    currentStageId?: string | null
     status?: OrderItemStatus
 }

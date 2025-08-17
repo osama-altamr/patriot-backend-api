@@ -75,7 +75,6 @@ export class OrderCodeService {
 </body>
 </html>
   `;
-  orderCodeData.user.email = 'osama.altamr.sy@gmail.com'
   emailHtml = emailHtml
   .replace('{{code}}', code)
   .replace('{{current_year}}', currentYear.toString());

@@ -63,7 +63,7 @@ export class OrderItem extends CommonEntity {
 
     @ManyToOne(()=> Stage)
     @JoinColumn({ name: 'current_stage_id' })
-    currentStage: Stage
+    currentStage: Stage | null
 
     @Column({ type: 'int' })
     price: number

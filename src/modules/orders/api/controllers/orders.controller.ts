@@ -14,9 +14,8 @@ import { OrderCodeService } from '/orders/services/order-code.service'
 import { UpdateOrderItemDto } from '../dto/update-order-item.dto'
 import { OrderItemService } from '/orders/services/order-items.service'
 import { GlassCuttingDto } from '../dto/glass-cutting.dto'
-import { SendOrderCodeValidation } from '../validations/send-code.dto'
-import { SendOrderCodeDto } from '../dto/send-order-code.dto'
 import { UserService } from '/users/services/user.service'
+import { CreateOrderItemAction } from '../dto/create-order-item-action.dto'
 
 @Controller("orders")
 export class OrdersController {
@@ -34,9 +33,8 @@ export class OrdersController {
     return await this.ordersService.create(createOrderDto)
   }
 
-
     @Get('items')
-    async getItems(@Query('currentStage') currentStageId?: string,
+    async getItems(@Query('currentStageId') currentStageId?: string,
     @Query('employeeId')  employeeId?: string
      ){
     const items = await this.ordersService.getItems(currentStageId, employeeId)
@@ -46,6 +44,27 @@ export class OrdersController {
       }
     }
 
+    @Get('items/:itemId')
+    async getOrderItem(@Param('itemId') id: string): Promise<OrderItem> {
+      return await this.ordersService.getOrderItem(id)
+    }
+
+      @Patch('items/:itemId')
+    updateOrderItem(
+      @Param('itemId') itemId: string,
+      @Body() orderItemData: UpdateOrderItemDto
+    ): Promise<OrderItem> {
+      return this.orderItemService.updateOrderItem(itemId, orderItemData)
+    }
+
+    @Post('items/:itemId/actions')
+    createAction(
+      @Param('itemId') itemId: string,
+      @Body() itemActionData: CreateOrderItemAction
+    ) {
+      return this.orderItemService.createAction(itemId, itemActionData)
+    }
+    
     @Post('glass-cutting')
     async glassCuttingAlgo(
       @Body() input: GlassCuttingDto
@@ -64,6 +83,12 @@ export class OrdersController {
    return data
   }
 
+ @Delete('/cutting-results')
+  async delete(
+  ) {
+   await this.ordersService.deleteResult()
+  }
+
   @Post(':id/verify-codes')
   async verifyOrderCode(@Param('id') id: string, @Body(VerifyOrderValidation) orderCodeData:  VerifyOrderCodeDto): Promise<{ isValid: boolean, message?: string }> {
     const order = await this.ordersService.findOne(id)
@@ -73,6 +98,11 @@ export class OrdersController {
      })
   }
 
+  @Get(':id/items')
+  async getOrderItems(@Param('id') id: string, @Query('currentStage') currentStageId?: string): Promise<OrderItem[]> {
+    return await this.ordersService.getOrderItems(id,currentStageId)
+  }
+  
   @Post(':id/send-codes')
   async sendOrderCode(@Param('id') id: string) {
     const order = await this.ordersService.findOne(id)
@@ -109,21 +139,6 @@ export class OrdersController {
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     return await this.ordersService.remove(id)
-  }
-
-
-  @Get(':id/items')
-  async getOrderItems(@Param('id') id: string, @Query('currentStage') currentStageId?: string): Promise<OrderItem[]> {
-    return await this.ordersService.getOrderItems(id,currentStageId)
-  }
-
-
-  @Patch('items/:itemId')
-  createOrderItem(
-    @Param('itemId') itemId: string,
-    @Body() orderItemData: UpdateOrderItemDto
-  ): Promise<OrderItem> {
-    return this.orderItemService.updateOrderItem(itemId, orderItemData)
   }
 
   // @Post(':id/items')

@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { BaseRepository, Product } from '../../../database';
-import {  } from '../../../database';
-import { UpdateProductDto } from '../api/dto/request/update-product.dto';
 
 @Injectable()
 export class ProductRepository extends BaseRepository<Product> {
@@ -13,9 +11,15 @@ export class ProductRepository extends BaseRepository<Product> {
   ) {
     super(repository);
   }
-  async findAllWithPop() {
+  async findAllWithPop(categoryId: string) {
+    const query: FindOptionsWhere<Product> = {}
+    if(categoryId) {
+      query.category = { id: categoryId }
+    }
     return await this.findAll({
+    
       filter: {
+        where: query,
         relations: ['category', 'stages'],
       }
     })

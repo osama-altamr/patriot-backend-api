@@ -19,6 +19,7 @@ export class NotificationController {
             total: data.length
         }
     }
+    
     @Get('unread-count')
     @UseGuards(JwtAuthGuard)
     async getUnreadCount(@CurrentUser() user: User): Promise<{count: number}> {

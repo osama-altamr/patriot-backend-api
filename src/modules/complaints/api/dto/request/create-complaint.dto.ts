@@ -5,6 +5,6 @@ export class CreateComplaintDto implements Pick<IComplaint, 'description' | 'fil
   fileUrl?: string;
   type?: string
   location?: string
-  userId?; string
+  userId?: string
   user?: User
 }

@@ -6,6 +6,7 @@ import { CommonEntity } from './common.entity'
 import { Complaint } from './complaint.entity'
 import { Notification } from './notification.entity'
 import { State, City } from './'
+import { Favorite } from './favorite.entity'
 
 interface IAddress {
   stateId: string
@@ -69,6 +70,9 @@ export class User extends CommonEntity {
 
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification[]
+
+  @OneToMany(() => Favorite, (favorite) => favorite.user)
+  favorites: Favorite[];
 
   @Column({ default: true })
   isActive: boolean

@@ -22,7 +22,7 @@ export class OrderItemRepository extends BaseRepository<OrderItem> {
             console.log(query)
           return await this.repository.findOne({
             where: { ...query },
-            relations: ['stages', 'currentStage', 'order'],
+            relations: ['stages', 'currentStage', 'order', 'orderItemActions.stage'],
           });
         } catch (error) {
           if (error instanceof EntityPropertyNotFoundError) {
@@ -36,15 +36,64 @@ export class OrderItemRepository extends BaseRepository<OrderItem> {
     async  findAllWithPop(query: object){
         return this.repository.find({
           where: query,
-          relations: ['stages', 'currentStage', 'product', 'category', 'material', 'orderItemActions.stage'],
-      }) 
+          relations: {
+            stages: true,
+            currentStage: true,
+            orderItemActions: {
+              stage: true
+            },
+            product: true,
+            category: true,
+            material: true,
+          },
+          order: {
+            createdAt: 'DESC', 
+            stages: {
+                order: 'ASC',
+            },
+            orderItemActions: {
+                createdAt: 'ASC'
+            }
+        },
+          }) 
       }
-    async findOneByIdWithPop(id: string) {
-     return this.repository.findOne({
-          where: { id },
-          relations: ['stages', 'currentStage', 'orderItemActions.stage', 'product', 'category', 'material'],
-     })
-  }
+      async findOneByIdWithPop(id: string): Promise<OrderItem | null> {
+        if (!id) {
+            console.log('Empty ID provided');
+            return null;
+        }
     
-
+        console.log('Searching for ID:', id, 'Type:', typeof id);
+    
+        // First try a simple find without relations to verify the item exists
+        const simpleFind = await this.repository.findOne({ where: { id } });
+        console.log('Simple find result:', simpleFind);
+    
+        if (!simpleFind) {
+            console.log('Item not found with simple query');
+            return null;
+        }
+    
+        // Now try the complex query
+        const queryBuilder = this.repository
+            .createQueryBuilder('orderItem')
+            .leftJoinAndSelect('orderItem.stages', 'stage')
+            .leftJoinAndSelect('orderItem.currentStage', 'currentStage')
+            .leftJoinAndSelect('orderItem.orderItemActions', 'action')
+            .leftJoinAndSelect('action.stage', 'actionStage')
+            .leftJoinAndSelect('orderItem.product', 'product')
+            .leftJoinAndSelect('orderItem.category', 'category')
+            .leftJoinAndSelect('orderItem.material', 'material')
+            .where('orderItem.id = :id', { id })
+            .orderBy('stage.order', 'ASC')
+            .addOrderBy('action.createdAt', 'ASC');
+    
+        console.log("Final SQL query:", queryBuilder.getSql());
+        console.log("Parameters:", queryBuilder.getParameters());
+        
+        const result = await queryBuilder.getOne();
+        console.log("Query result:", result);
+        
+        return result;
+    }
 }

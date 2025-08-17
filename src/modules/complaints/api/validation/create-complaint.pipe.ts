@@ -9,6 +9,7 @@ export class CreateComplaintValidation extends BaseValidationPipe<CreateComplain
       fileUrl: string().url().optional(),
       type: string().optional(),
       location: string().optional(),
+      userId: string().optional(),
     })
     super(schema);
   }
