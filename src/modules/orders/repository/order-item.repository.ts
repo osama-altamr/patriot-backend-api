@@ -22,7 +22,7 @@ export class OrderItemRepository extends BaseRepository<OrderItem> {
             console.log(query)
           return await this.repository.findOne({
             where: { ...query },
-            relations: ['stages', 'currentStage', 'order', 'orderItemActions.stage'],
+            relations: ['stages', 'stagePattern', 'currentStage', 'order', 'orderItemActions.stage'],
           });
         } catch (error) {
           if (error instanceof EntityPropertyNotFoundError) {
@@ -42,6 +42,7 @@ export class OrderItemRepository extends BaseRepository<OrderItem> {
             orderItemActions: {
               stage: true
             },
+            stagePattern: true,
             product: true,
             category: true,
             material: true,
@@ -59,18 +60,11 @@ export class OrderItemRepository extends BaseRepository<OrderItem> {
       }
       async findOneByIdWithPop(id: string): Promise<OrderItem | null> {
         if (!id) {
-            console.log('Empty ID provided');
             return null;
         }
     
-        console.log('Searching for ID:', id, 'Type:', typeof id);
-    
-        // First try a simple find without relations to verify the item exists
         const simpleFind = await this.repository.findOne({ where: { id } });
-        console.log('Simple find result:', simpleFind);
-    
         if (!simpleFind) {
-            console.log('Item not found with simple query');
             return null;
         }
     
@@ -84,16 +78,12 @@ export class OrderItemRepository extends BaseRepository<OrderItem> {
             .leftJoinAndSelect('orderItem.product', 'product')
             .leftJoinAndSelect('orderItem.category', 'category')
             .leftJoinAndSelect('orderItem.material', 'material')
+            .leftJoinAndSelect('orderItem.stagePattern', 'stagePattern')
             .where('orderItem.id = :id', { id })
             .orderBy('stage.order', 'ASC')
             .addOrderBy('action.createdAt', 'ASC');
     
-        console.log("Final SQL query:", queryBuilder.getSql());
-        console.log("Parameters:", queryBuilder.getParameters());
-        
         const result = await queryBuilder.getOne();
-        console.log("Query result:", result);
-        
         return result;
     }
 }

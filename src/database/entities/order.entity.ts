@@ -86,6 +86,9 @@ export class Order extends CommonEntity {
   @JoinColumn({ name: 'driver_id' })
   driver: User
 
+  @Column({ type: 'decimal', nullable: true })
+  total: number
+
   @OneToMany(() => OrderItem, orderItem => orderItem.order)
   items: OrderItem[]
 }
@@ -101,4 +104,5 @@ export abstract class IOrder {
   outForDeliveryAt?: Date; 
   deliveredAt?: Date;
   address: IAddress
+  total?: number
 }

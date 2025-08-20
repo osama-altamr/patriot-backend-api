@@ -59,6 +59,7 @@ export class PermissionService {
   }
 
   async getUserByStage(stageId: string) {
+    console.log(stageId)
     const permission = await this.permissionRepo.findOneByWithPop({ stage: { id: stageId }})
    return permission.user
   }

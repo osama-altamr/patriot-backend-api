@@ -6,6 +6,7 @@ import { Product } from './product.entity'
 import { Stage } from './stage.entity'
 import { OrderItemAction } from './order-item-action.entity'
 import { Material } from './material.entity'
+import { StagePattern } from './stage-pattern.entity'
 
 export enum OrderItemStatus {
     pending = 'pending',
@@ -61,12 +62,20 @@ export class OrderItem extends CommonEntity {
     @JoinColumn({ name: 'material_id' })
     material: Material
 
+    @ManyToOne(() => StagePattern)
+    @JoinColumn({ name: 'stage_pattern_id' })
+    stagePattern: StagePattern
+
     @ManyToOne(()=> Stage)
     @JoinColumn({ name: 'current_stage_id' })
     currentStage: Stage | null
 
-    @Column({ type: 'int' })
+    @Column({ type: 'decimal', nullable: true })
     price: number
+
+
+    @Column({ type: 'varchar', nullable: true })
+    patternImageUrl: string
 
     @OneToMany(() => OrderItemAction, (orderItemAction) => orderItemAction.orderItem)
     orderItemActions: OrderItemAction[]
@@ -84,4 +93,5 @@ export abstract class IOrderItem {
     price: number
     note?: string
     material: Material
+    stagePattern?: StagePattern
 } 

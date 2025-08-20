@@ -4,7 +4,7 @@ import { CreateOrderItemDto } from '../api/dto/create-order.dto'
 import { OrderItem, OrderItemStatus } from '../../../database/entities/order-item.entity'
 import { OrderItemRepository } from '../repository/order-item.repository'
 import { ProductService } from '../../products/services/product.service'
-import { Not, IsNull } from 'typeorm'
+import { Not, IsNull, In } from 'typeorm'
 import { UserService } from '/users/services/user.service'
 import { OrderCodeService } from './order-code.service'
 import { QrcodeService } from './qrcode.service'
@@ -17,6 +17,7 @@ import { MaterialRepository } from '/materials/repository/material.repository'
 import { PermissionService } from '/permissions/services/permission.service'
 import { NotificationRepository } from '/notifications/repository/notification.repository'
 import { CreateOrderItemAction } from '../api/dto/create-order-item-action.dto'
+import { StagePatternRepository } from '/stage-pattern/repository/stage-pattern.repository'
 @Injectable()
 export class OrderItemService {
     constructor(private readonly ordersRepository: OrdersRepository,
@@ -26,10 +27,10 @@ export class OrderItemService {
         private readonly permissionService: PermissionService,
         private readonly notificationRepo: NotificationRepository,
         private readonly productService: ProductService,
-        private readonly userService: UserService,
         private readonly qrcodeService: QrcodeService,
         private readonly stageRepo: StageRepository,
         private readonly orderItemActionRepository: OrderItemActionRepository,
+        private readonly stagePatternRepo: StagePatternRepository,
         
     ) { }
 
@@ -38,6 +39,7 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
     await this.ordersRepository.findOneById(orderId)
     let material
     let category
+    let stagePattern
 
     if(orderItemData.categoryId){
         category= await this.categoryRepo.findOneById(orderItemData.categoryId)
@@ -45,8 +47,20 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
     if(orderItemData.materialId){
         material= await this.materialRepo.findOneById(orderItemData.materialId)
     }
+    if(orderItemData.stagePatternId){
+        stagePattern = await this.stagePatternRepo.findOneById(orderItemData.materialId)
+    }
+    let stages = product.stages
+    let finalPrice
 
-    const stages = product.stages
+    if(orderItemData.stageIds && orderItemData.stageIds.length > 0) {
+        stages = await this.stageRepo.findBy({ id: In( orderItemData.stageIds) })
+    } else {
+        const widthInMeters = orderItemData.width / 100;
+        const heightInMeters = orderItemData.height / 100;
+        const area = widthInMeters * heightInMeters;
+        finalPrice = Number(area * product.pricePerSquareMeter).toFixed(2)
+    }
     const orderItem  = await this.orderItemRepository.create({
         ...orderItemData,
         stages,
@@ -55,8 +69,9 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
         order: { id: orderId } as any,
         product,
         status: OrderItemStatus.pending,
-        price: 0,
+        price: finalPrice,
         category,
+        stagePattern,
     } as any) as OrderItem
     const qrCode = await this.qrcodeService.generateQRCode(`http://locahost:3000/confirm-state?orderId=${orderId}&orderItem=${orderItem.id}`)
     const updatedOrderItem =  await this.orderItemRepository.update(orderItem.id, {
@@ -68,6 +83,7 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
     async getOrderItem(orderItemId: string): Promise<OrderItem> {
         return await this.orderItemRepository.findOneByIdWithPop(orderItemId)
     }
+
 
   async updateOrderItem( itemId:string, orderItemData: UpdateOrderItemDto): Promise<OrderItem> {
     const orderItem = await this.orderItemRepository.findOneBy({ id: itemId })
@@ -84,6 +100,13 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
         delete orderItemData.currentStageId;
     }
 
+    if (orderItemData.stageIds !== undefined) {
+        orderItemData.stages = await this.stageRepo.findBy({
+            id: In(orderItemData.stageIds)
+        })
+        delete orderItemData.stageIds;
+    }
+
     const updatedItem = await this.orderItemRepository.update(orderItem.id, orderItemData)
     await this.checkCompletedOrder(orderItem.order.id)
     return updatedItem
@@ -93,8 +116,17 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
        const order =  await this.ordersRepository.findOneById(orderId)
        const completedItems = order.items.filter(item => item.status === OrderItemStatus.completed)
        if(order.items.length === completedItems.length){
+        const orderItems = await this.orderItemRepository.findBy({
+            order: { id: orderId }
+        })
+
+        let total = 0; 
+        for(const item of orderItems){
+            total += Number(item.price)
+        }        
         await this.ordersRepository.update(orderId, {
-            status: OrderStatus.completed
+            status: OrderStatus.completed,
+            total
         })
        const drivers = await this.permissionService.getAllDrivers()
        for(const driver of drivers) {
@@ -127,7 +159,7 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
             en: `Order #${order.ref} has been completed successfully`,
             ar: `تم إكمال الطلب رقم #${order.ref} بنجاح`
         }
-      };
+      }
       await this.notificationRepo.create({
         title: notifications.title,
         content: notifications.content,
@@ -135,17 +167,19 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
         type: "order",
         recordId: orderId,
         user: order.user,
-      });
+      })
        }
     }
 
     async createAction(itemId: string, reqData: CreateOrderItemAction){
+     Logger.debug({ reqData }, 'request Dataaaaaaaaaaaaaaaaaaaa')
         const orderItem = await this.orderItemRepository.findOneBy({ id: itemId })
         if (!orderItem) {
             throw new NotFoundException('Order item not found');
         }
 
      const employee = await this.permissionService.getUserByStage(orderItem.currentStage.id)
+
      if (!employee) {
        throw new NotFoundException('Employee not found');
      }
@@ -162,6 +196,7 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
             orderItem: { id: orderItem.id },
             stage: { id: orderItem.currentStage.id },
           })
+          console.log('DOneeeeeeeeeeeeeeee')
        return  await this.orderItemActionRepository.update(currentAction.id, {
            endsAt: new Date()
        })

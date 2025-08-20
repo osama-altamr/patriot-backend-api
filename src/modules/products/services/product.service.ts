@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { ProductRepository } from '../repository/product.repository'
 import { CreateProductDto } from '../api/dto/request/create-product.dto'
 import { UpdateProductDto } from '../api/dto/request/update-product.dto'
@@ -24,10 +24,12 @@ export class ProductService {
     product.height = productData.height
     product.imageUrl = productData.imageUrl
     product.width = productData.width
+    product.pricePerSquareMeter = productData.pricePerSquareMeter
     product.category = await this.categoryRepo.findOneById(productData.categoryId)
     product.stages = await this.StageRepo.findBy({
       id: In( productData.stageIds)
     })
+    Logger.debug({ st: product.stages })
     return await this.productRepo.create(product)
   }
 

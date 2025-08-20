@@ -1,1 +1,44 @@
-{}
+{
+  "materialDimensions": {
+    "width": "230",
+    "height": "250"
+  },
+  "packedItems": [
+    {
+      "id": "234dd8eb-4ab5-4154-8b0f-c1ca5c54d8f7",
+      "width": 200,
+      "height": 249,
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "unpackedItems": [
+    {
+      "id": "6ae29637-361c-48f1-897d-5f2762b9860b",
+      "width": 200,
+      "height": 249
+    },
+    {
+      "id": "1c73ae68-3171-4339-889c-11eae337fc0b",
+      "width": 200,
+      "height": 249
+    },
+    {
+      "id": "58a73956-6a68-4327-aa94-af52204be4e7",
+      "width": 200,
+      "height": 249
+    },
+    {
+      "id": "b25329d7-cf12-4c04-a7c0-8eb346cef53d",
+      "width": 200,
+      "height": 249
+    },
+    {
+      "id": "c9e3c3f9-41a8-4755-914f-6890fa4641f8",
+      "width": 200,
+      "height": 249
+    }
+  ],
+  "utilization": 0.8660869565217392,
+  "originalMaterialId": "5b68d45e-8289-4d24-851d-208af073e034"
+}

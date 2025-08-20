@@ -57,6 +57,8 @@ export class OrdersRepository extends BaseRepository<Order> {
         queryBuilder.leftJoinAndSelect('items.currentStage', 'currentStage');
         queryBuilder.leftJoinAndSelect('items.stages', 'stages');
         queryBuilder.leftJoinAndSelect('items.material', 'material');
+        queryBuilder.leftJoinAndSelect('items.stagePattern', 'stagePattern');
+
         if (query.status) {
             queryBuilder.andWhere('order.status = :status', { status: query.status });
         }

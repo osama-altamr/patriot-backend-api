@@ -16,6 +16,7 @@ import { OrderItemService } from '/orders/services/order-items.service'
 import { GlassCuttingDto } from '../dto/glass-cutting.dto'
 import { UserService } from '/users/services/user.service'
 import { CreateOrderItemAction } from '../dto/create-order-item-action.dto'
+import { MaterialService } from '/materials/services/material.service'
 
 @Controller("orders")
 export class OrdersController {
@@ -49,7 +50,7 @@ export class OrdersController {
       return await this.ordersService.getOrderItem(id)
     }
 
-      @Patch('items/:itemId')
+    @Patch('items/:itemId')
     updateOrderItem(
       @Param('itemId') itemId: string,
       @Body() orderItemData: UpdateOrderItemDto
@@ -64,7 +65,7 @@ export class OrdersController {
     ) {
       return this.orderItemService.createAction(itemId, itemActionData)
     }
-    
+
     @Post('glass-cutting')
     async glassCuttingAlgo(
       @Body() input: GlassCuttingDto

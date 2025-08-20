@@ -13,6 +13,7 @@ export class CreateProductValidation extends BaseValidationPipe<CreateProductDto
       width: number().positive().optional(), 
       categoryId: string().uuid(), 
       stageIds: string().uuid().array(), 
+      pricePerSquareMeter: number().positive().optional(), 
     })
     super(schema)
   }
