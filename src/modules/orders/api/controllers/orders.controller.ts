@@ -49,7 +49,7 @@ export class OrdersController {
       return await this.ordersService.getOrderItem(id)
     }
 
-      @Patch('items/:itemId')
+    @Patch('items/:itemId')
     updateOrderItem(
       @Param('itemId') itemId: string,
       @Body() orderItemData: UpdateOrderItemDto
@@ -64,7 +64,7 @@ export class OrdersController {
     ) {
       return this.orderItemService.createAction(itemId, itemActionData)
     }
-    
+
     @Post('glass-cutting')
     async glassCuttingAlgo(
       @Body() input: GlassCuttingDto

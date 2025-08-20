@@ -9,4 +9,5 @@ export class UpdateOrderDto {
     outForDeliveryAt?: Date; 
     deliveredAt?: Date;
     address?: IAddress
+    total?: number
 } 

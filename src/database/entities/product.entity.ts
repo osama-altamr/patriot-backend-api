@@ -48,6 +48,14 @@ export class Product extends CommonEntity {
   @OneToMany(() => Favorite, (favorite) => favorite.product)
   favoritedBy: Favorite[];
 
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true
+  })
+  pricePerSquareMeter?: number;
+
   ratingsAverage?: number
   ratingsQuantity?: number
 }

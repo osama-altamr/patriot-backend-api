@@ -23,6 +23,7 @@ import { Worker } from 'worker_threads';
 import { OrderItemActionRepository } from '../repository/order-item-action.repository'
 import * as fs from 'fs/promises';
 import { ProductService } from '/products/services/product.service'
+import { PermissionRepository } from '/permissions/repository/permission.repository'
 
 type PackableItem = {
     id: any;
@@ -38,12 +39,11 @@ export class OrdersService {
         private readonly orderItemActionRepo: OrderItemActionRepository,
         private readonly orderItemService: OrderItemService,
         private readonly userService: UserService,
-        private readonly orderCodeService: OrderCodeService,
         private readonly notificationService: NotificationService,
         private readonly materialService: MaterialService,
         private readonly stateService: StateService,
         private readonly cityService: CityService,
-        private readonly productService: ProductService,
+        private readonly permissionRepo: PermissionRepository,
     ) { }
 
     async startGlassCuttingJob(inputData: GlassCuttingDto): Promise<void> {
@@ -410,8 +410,8 @@ export class OrdersService {
     }
 
     async create(createOrderDto: CreateOrderDto): Promise<Order> {
-          const random4Digit = Math.floor(1000 + Math.random() * 9000); 
-          const newRef = `DO-${random4Digit}`;
+        const random4Digit = Math.floor(1000 + Math.random() * 9000); 
+        const newRef = `DO-${random4Digit}`;
         const user = await this.userService.getMe(createOrderDto.userId)
         const order = await this.ordersRepository.create({
             ...createOrderDto,
@@ -419,7 +419,6 @@ export class OrdersService {
             user,
         } as any) as Order
 
-        await Promise.all(createOrderDto.items.map(async item => await this.orderItemService.createOrderItem(order.id, item)))
         await this.notificationService.createNotification({
             title: {
                 en: `New Order #${order.ref }`,
@@ -434,6 +433,31 @@ export class OrdersService {
             userId: user.id,
             user: user,
         })
+        const hasCustomItems = createOrderDto.items.some(item => item.stageIds && item.stageIds.length > 0);
+        for(const item of createOrderDto.items){
+            await this.orderItemService.createOrderItem(order.id, item)
+        }
+       
+        if (hasCustomItems) {
+            const adminsToNotify = await this.permissionRepo.getAllWithPop({
+            accessType: 'admin' 
+            })
+           await Promise.all(adminsToNotify.map(async admin => {
+            await this.notificationService.createNotification({
+                title: {
+                    en: `Action Required for Order #${order.ref}`,
+                    ar: `إجراء مطلوب للطلب #${order.ref}`
+                },
+                content: {
+                    en: `Order #${order.ref} contains custom items that require a price to be set.`,
+                    ar: `يحتوي الطلب #${order.ref} على عناصر مخصصة تتطلب تحديد السعر.`
+                },
+                recordId: order.id,
+                type: 'order',
+                userId: admin.user.id,
+            });
+           }))
+        }
 
         if(order.address && order.address.cityId) {
             order.address.city = await this.cityService.getCity(order.address.cityId)
@@ -441,7 +465,6 @@ export class OrdersService {
         if(order.address && order.address.stateId) {
             order.address.state = await this.stateService.getState(order.address.stateId)
         }
-
         return await this.ordersRepository.findOneById(order.id)
     }
 

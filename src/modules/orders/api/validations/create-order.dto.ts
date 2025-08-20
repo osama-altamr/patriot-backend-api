@@ -25,6 +25,8 @@ export class CreateOrderValidation extends BaseValidationPipe<CreateOrderDto> {
                 height: number(),
                 categoryId: string().optional().nullable(),
                 materialId: string().optional().nullable(),
+                stageIds: string().array().optional(),
+                stagePatternId: string().optional().nullable(),
             }).array(),
             userId:  string(),
             driverId: string().optional().nullable(),

@@ -22,7 +22,7 @@ export class OrderItemRepository extends BaseRepository<OrderItem> {
             console.log(query)
           return await this.repository.findOne({
             where: { ...query },
-            relations: ['stages', 'currentStage', 'order', 'orderItemActions.stage'],
+            relations: ['stages', 'stagePattern', 'currentStage', 'order', 'orderItemActions.stage'],
           });
         } catch (error) {
           if (error instanceof EntityPropertyNotFoundError) {
@@ -42,6 +42,7 @@ export class OrderItemRepository extends BaseRepository<OrderItem> {
             orderItemActions: {
               stage: true
             },
+            stagePattern: true,
             product: true,
             category: true,
             material: true,
@@ -84,6 +85,7 @@ export class OrderItemRepository extends BaseRepository<OrderItem> {
             .leftJoinAndSelect('orderItem.product', 'product')
             .leftJoinAndSelect('orderItem.category', 'category')
             .leftJoinAndSelect('orderItem.material', 'material')
+            .leftJoinAndSelect('orderItem.stagePattern', 'stagePattern')
             .where('orderItem.id = :id', { id })
             .orderBy('stage.order', 'ASC')
             .addOrderBy('action.createdAt', 'ASC');

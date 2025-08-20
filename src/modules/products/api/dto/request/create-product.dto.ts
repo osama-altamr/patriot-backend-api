@@ -10,4 +10,5 @@ export class CreateProductDto {
   categoryId: string 
   stageIds?: string[]
   stages?: Stage[]
+  pricePerSquareMeter?: number
 }

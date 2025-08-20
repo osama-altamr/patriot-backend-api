@@ -11,4 +11,5 @@ export class UpdateProductDto {
   category?: Category
   stageIds?: string[]
   stages?: Stage[]
+  pricePerSquareMeter?: number
 }
