@@ -68,3 +68,47 @@ export class AgendaService implements OnModuleInit, OnModuleDestroy {
         return this.agenda;
     }
 }
+
+
+/*
+Usage example 
+
+@Injectable()
+export class CurrencyJob {
+    constructor(
+        private readonly redisService: RedisService,
+        private readonly currencyService: CurrencyService,
+        private readonly agendaService: AgendaService
+    ) {
+
+    }
+
+    async updateCurrencies() {
+                                        
+        this.agendaService.defineJob(JobName.GET_CURRENCIES, async () => { 
+            await this.getCurrencyTimeSeries() 
+        });
+        
+        const times = [
+            ScheduleRecurrence.AM_9,
+            ScheduleRecurrence.AM_12,
+            ScheduleRecurrence.AM_2,
+            ScheduleRecurrence.AM_4
+        ];
+        
+        for (const time of times) {
+            await this.agendaService.scheduleJob(JobName.GET_CURRENCIES, time, {});
+        }
+        
+        console.log("Currency update scheduled at 9 AM, 12 AM, 2 AM, and 4 AM daily");
+    }
+
+    async getCurrencyTimeSeries() {
+        const marketStatus = await this.redisService.get(CurrencyRedisKey.MarketStatus)
+        if (MarketStatusEnum.OPEN === marketStatus) {
+            await this.currencyService.getCurrencyTimeSeries()
+        }
+    }
+}
+
+*/
