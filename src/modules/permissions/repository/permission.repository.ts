@@ -77,17 +77,18 @@ export class PermissionRepository extends BaseRepository<Permission> {
     })
   }
 
-  async findOneByWithPop(userId: string){
+  async findOneByWithPop(query: object){
     return await this.repository.findOne({
       where: {
-        user: {id: userId}
+        ...query
       },
+      relations: ['stage', 'user']
     })
   }
 
-  async getAllWithPop(){
+  async getAllWithPop(query?: object){
     return await this.repository.find({
-      where: {
+      where: query ?? {
       },
       relations: ['user', 'stage']
     })

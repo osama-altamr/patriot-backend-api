@@ -19,8 +19,8 @@ export class CityController {
     }
 
     @Get()
-    async getAll(@Query('search') search?: string){
-        return await this.cityService.getAllCities(search);
+    async getAll(@Query('search') search?: string, @Query('stateId') stateId?: string){
+        return await this.cityService.getAllCities(search, stateId);
     }
 
     @Get(':id')

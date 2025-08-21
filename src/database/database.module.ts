@@ -2,6 +2,7 @@ import { Logger, Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule,  } from '@nestjs/typeorm';
 import { EnvironmentService } from '@Package/config';
+import { StageSubscriber } from './subscribers/stage.subscriber';
 
 const ORMModule = TypeOrmModule.forRootAsync({
   imports: [ConfigModule],
@@ -14,6 +15,7 @@ const ORMModule = TypeOrmModule.forRootAsync({
     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
     logging: configService.get('NODE_ENV') !== 'production',
     migrations: [__dirname + '/migrations/*{.ts,.js}'],
+    subscribers: [StageSubscriber],
   }),
 })
 

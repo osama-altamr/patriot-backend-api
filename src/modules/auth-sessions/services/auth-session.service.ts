@@ -24,7 +24,6 @@ export class AuthSessionService {
     return addSeconds(issuedAt, +this.environmentService.get('jwt.jwtExpiredRefresh'))
   }
     
-
   async login(data: LoginDto): Promise<{
     user: IUser,
     accessToken: string,
@@ -36,8 +35,6 @@ export class AuthSessionService {
     if(!user) {
      throw new BadRequestException()
     }
-    user.permissions = await this.permissionRepo.findOneByWithPop(user.id)
-  
     if(!await HashService.comparePassword(data.password, user.password)){
       throw new BadRequestException()
     }
@@ -61,7 +58,13 @@ export class AuthSessionService {
       revokedAt: null,
       user
     })
-    
+    const permission = await this.permissionRepo.findOneByWithPop({
+      user: { id: user.id }
+    })
+  
+    console.log(permission)
+
+    user.permissions = permission 
     return {
       user,
       accessToken,

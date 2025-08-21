@@ -1,4 +1,4 @@
-import { Category, Material, Stage } from 'src/database'
+import { Category, Material, Product, Stage, StagePattern } from 'src/database'
 import { IAddress, OrderPriority, OrderStatus, OrderType } from '../../../../database/entities/order.entity'
 
 export class CreateOrderDto {
@@ -10,6 +10,7 @@ export class CreateOrderDto {
     driverId?: string
     items: CreateOrderItemDto[]
     address: IAddress
+
 } 
 
 export class CreateOrderItemDto {
@@ -27,4 +28,7 @@ export class CreateOrderItemDto {
     outForDeliveryAt?: Date; 
     deliveredAt?: Date;
     note?: string
+    product?: Product
+    stagePattern?: StagePattern
+    stagePatternId?: string
 }

@@ -22,13 +22,17 @@ import { CategoryModule } from '/categories/category.module'
 import { PermissionModule } from '/permissions/permission.module'
 import { StateModule } from '/states/state.module'
 import { CityModule } from '/city/city.module'
+import { StagePatternModule } from '/stage-pattern/stage-pattern.module'
 
 @Module({
     imports: [
     MailerModule,
     TypeOrmModule.forFeature([Order, OrderItem, OrderCode, OrderItemAction]),
     ProductModule, NotificationModule, UserModule, StageModule, MaterialModule, CategoryModule, PermissionModule, 
-    StateModule, CityModule,
+    StateModule, CityModule,ProductModule,
+    PermissionModule,
+    UserModule,
+    StagePatternModule
 ],
     controllers: [OrdersController],
     providers: [OrdersService, OrderCodeService, OrdersRepository, OrderItemService, OrderItemActionRepository, OrderItemRepository, OrderCodeRepository, QrcodeService],

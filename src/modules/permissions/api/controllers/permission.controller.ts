@@ -30,7 +30,11 @@ export class PermissionController {
         // @UserRoleMetadata([UserRole.admin])
         // @UseGuards(JwtAuthGuard, UserRoleGuard)
         async getDrivers(){
-            return await this.permissionService.getAllDrivers()
+            const data= await this.permissionService.getAllDrivers()
+            return {
+                total: data.length,
+                results: data
+            }
         }
 
     @Get(':id')

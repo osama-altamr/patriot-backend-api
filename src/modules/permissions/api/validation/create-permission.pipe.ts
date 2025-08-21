@@ -12,7 +12,7 @@ export class CreatePermissionValidation extends BaseValidationPipe<CreatePermiss
         write: boolean(),
         read: boolean(),
        }).array(),
-      stageId: string().optional(),
+      stageId: string().optional().nullable(),
       accessType: nativeEnum(PermissionAccessType),
       userId: string(),
     });

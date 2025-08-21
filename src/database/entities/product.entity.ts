@@ -4,6 +4,7 @@ import { CommonEntity } from './common.entity'
 import { LocalizedString } from '@Package/api/interfaces/localized.interface'
 import { ProductReview } from './product-review.entity'
 import { Stage } from './stage.entity'
+import { Favorite } from './favorite.entity'
 
 @Entity()
 export class Product extends CommonEntity {
@@ -43,6 +44,17 @@ export class Product extends CommonEntity {
 
   @OneToMany(() => ProductReview, (review) => review.product)
   reviews: ProductReview[]
+
+  @OneToMany(() => Favorite, (favorite) => favorite.product)
+  favoritedBy: Favorite[];
+
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true
+  })
+  pricePerSquareMeter?: number;
 
   ratingsAverage?: number
   ratingsQuantity?: number

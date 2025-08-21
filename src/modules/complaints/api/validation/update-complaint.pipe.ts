@@ -11,6 +11,7 @@ export class UpdateComplaintValidation extends BaseValidationPipe<UpdateComplain
       status: nativeEnum(ComplaintStatus).optional(),
       type: string().optional(),
       location: string().optional(),
+      closedById: string().optional(),
     })
     super(schema);
   }

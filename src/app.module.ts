@@ -20,6 +20,8 @@ import { ProductReviewModule } from '/product-reviews/product-review.module'
 import { ReportModule } from '/reports/report.module'
 import { StateModule } from '/states/state.module'
 import { CityModule } from '/city/city.module'
+import { FavoriteModule } from '/favorites/favorite.module'
+import { StagePatternModule } from '/stage-pattern/stage-pattern.module'
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { CityModule } from '/city/city.module'
     ReportModule,
     StateModule,
     CityModule,
+    FavoriteModule,
+    StagePatternModule,
   ],
 })
 export class AppModule {}

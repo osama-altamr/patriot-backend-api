@@ -19,8 +19,8 @@ export class CityService {
     return this.cityRepo.create(cityData as any)
   }
 
-  async getAllCities(search?: string){
-    return this.cityRepo.getAllCities(search)
+  async getAllCities(search?: string, stateId?: string){
+    return this.cityRepo.getAllCities(search, stateId)
   }
 
   async getCity(id: string): Promise<City | null> {

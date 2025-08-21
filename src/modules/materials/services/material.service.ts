@@ -16,8 +16,8 @@ export class MaterialService {
     console.log(body)
     return await this.materialRepo.create(body as unknown as Material)
   }
-  async getAllMaterials(): Promise<Material[]> {
-    return this.materialRepo.findAll({})
+  async getAllMaterials(searchTerm?: string) {
+    return this.materialRepo.getAllMaterials(searchTerm)
   }
 
   async getMaterial(id: string): Promise<Material | null> {

@@ -8,6 +8,7 @@ export enum ReportType {
   employee = 'employee',
   order = 'order',
   complaint = 'complaint',
+  // Sales
 }
 
 interface OrderSummary {

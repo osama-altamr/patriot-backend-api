@@ -57,4 +57,10 @@ export class PermissionService {
   async deletePermission(id: string): Promise<void> {
    await this.permissionRepo.delete(id)
   }
+
+  async getUserByStage(stageId: string) {
+    console.log(stageId)
+    const permission = await this.permissionRepo.findOneByWithPop({ stage: { id: stageId }})
+   return permission.user
+  }
 }

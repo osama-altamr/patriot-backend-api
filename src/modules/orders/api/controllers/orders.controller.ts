@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common'
-import { glassCuttingData, OrdersService } from '../../services/orders.service'
+import { OrdersService } from '../../services/orders.service'
 import { CreateOrderDto } from '../dto/create-order.dto'
 import { UpdateOrderDto } from '../dto/update-order.dto'
 import { Order } from '../../../../database/entities/order.entity'
@@ -14,11 +14,14 @@ import { OrderCodeService } from '/orders/services/order-code.service'
 import { UpdateOrderItemDto } from '../dto/update-order-item.dto'
 import { OrderItemService } from '/orders/services/order-items.service'
 import { GlassCuttingDto } from '../dto/glass-cutting.dto'
+import { UserService } from '/users/services/user.service'
+import { CreateOrderItemAction } from '../dto/create-order-item-action.dto'
 
 @Controller("orders")
 export class OrdersController {
   constructor(
     private readonly ordersService: OrdersService,
+    private readonly userService: UserService,
     private readonly orderCodeService: OrderCodeService,
     private readonly orderItemService: OrderItemService,
   ) {}
@@ -29,6 +32,38 @@ export class OrdersController {
   ): Promise<Order> {
     return await this.ordersService.create(createOrderDto)
   }
+
+    @Get('items')
+    async getItems(@Query('currentStageId') currentStageId?: string,
+    @Query('employeeId')  employeeId?: string
+     ){
+    const items = await this.ordersService.getItems(currentStageId, employeeId)
+      return {
+        results: items,
+        total: items.length
+      }
+    }
+
+    @Get('items/:itemId')
+    async getOrderItem(@Param('itemId') id: string): Promise<OrderItem> {
+      return await this.ordersService.getOrderItem(id)
+    }
+
+    @Patch('items/:itemId')
+    updateOrderItem(
+      @Param('itemId') itemId: string,
+      @Body() orderItemData: UpdateOrderItemDto
+    ): Promise<OrderItem> {
+      return this.orderItemService.updateOrderItem(itemId, orderItemData)
+    }
+
+    @Post('items/:itemId/actions')
+    createAction(
+      @Param('itemId') itemId: string,
+      @Body() itemActionData: CreateOrderItemAction
+    ) {
+      return this.orderItemService.createAction(itemId, itemActionData)
+    }
 
     @Post('glass-cutting')
     async glassCuttingAlgo(
@@ -42,9 +77,16 @@ export class OrdersController {
     }
 
   @Get('material-grid')
-  getMaterialGrid(
+  async getMaterialGrid(
   ) {
-   return glassCuttingData
+    const data = await this.ordersService.getMaterialGrid()
+   return data
+  }
+
+ @Delete('/cutting-results')
+  async delete(
+  ) {
+   await this.ordersService.deleteResult()
   }
 
   @Post(':id/verify-codes')
@@ -55,6 +97,22 @@ export class OrdersController {
       orderId:  order.id
      })
   }
+
+  @Get(':id/items')
+  async getOrderItems(@Param('id') id: string, @Query('currentStage') currentStageId?: string): Promise<OrderItem[]> {
+    return await this.ordersService.getOrderItems(id,currentStageId)
+  }
+  
+  @Post(':id/send-codes')
+  async sendOrderCode(@Param('id') id: string) {
+    const order = await this.ordersService.findOne(id)
+    const user = await this.userService.getMe(order.user.id)
+    return await this.orderCodeService.createOrderCode({ 
+      order,
+      user,
+     })
+  }
+
 
   @Get()
   async findAll(
@@ -81,21 +139,6 @@ export class OrdersController {
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     return await this.ordersService.remove(id)
-  }
-
-  @Get(':id/items')
-  async getOrderItems(@Param('id') id: string, @Query('currentStage') currentStageId?: string): Promise<OrderItem[]> {
-    return await this.ordersService.getOrderItems(id,currentStageId)
-  }
-
-  @Patch(':orderId/items/:itemId')
-  createOrderItem(
-    @Param('orderId') orderId: string,
-    @Param('itemId') itemId: string,
-    @Body() orderItemData: UpdateOrderItemDto
-  ): Promise<OrderItem> {
-    return this.orderItemService.updateOrderItem(orderId,
-      itemId, orderItemData)
   }
 
   // @Post(':id/items')

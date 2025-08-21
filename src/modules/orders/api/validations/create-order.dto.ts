@@ -20,15 +20,16 @@ export class CreateOrderValidation extends BaseValidationPipe<CreateOrderDto> {
                }),
             items: object({
                 note: string().optional(),
-                productId: string().min(1, 'Product ID is required'),
-                width: number().positive('Width must be positive'),
-                height: number().positive('Height must be positive'),
-                categoryId: string().optional(),
-                materialId: string().optional(),
-                currentStageId: string().optional(),
-            }).array().min(1, 'At least one item is required'),
-            userId: string().min(1, 'User ID is required'),
-            driverId: string().optional(),
+                productId: string().optional(),
+                width: number(),
+                height: number(),
+                categoryId: string().optional().nullable(),
+                materialId: string().optional().nullable(),
+                stageIds: string().array().optional(),
+                stagePatternId: string().optional().nullable(),
+            }).array(),
+            userId:  string(),
+            driverId: string().optional().nullable(),
         })
         super(schema)
     }

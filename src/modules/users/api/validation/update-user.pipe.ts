@@ -7,7 +7,7 @@ import { UserRole } from '../enums/user.enum'
 export class UpdateUserValidation extends BaseValidationPipe<AddUserDto> {
   constructor() {
     const schema = object({
-      name: string().optional(),
+        name: string().optional(),
         email: string().email().optional(),
         photoUrl:  string().optional().nullable(),
         phoneNumber:  string().optional().nullable(),
@@ -19,7 +19,7 @@ export class UpdateUserValidation extends BaseValidationPipe<AddUserDto> {
           postalCode: string().optional(),
           apartment: string().optional(),
           complex: string().optional(),
-         }).optional()
+         }).optional().nullable()
     })
     super(schema)
   }

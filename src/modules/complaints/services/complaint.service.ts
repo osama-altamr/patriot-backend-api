@@ -17,15 +17,10 @@ export class ComplaintService {
     ) {}
 
   async createComplaint(complaintData: CreateComplaintDto): Promise<Complaint | Complaint[]> {
-    const complaint = new Complaint()
     const user = await this.userRepo.findOneById(complaintData.userId)
+    console.log(user)
     complaintData.user = user
-    complaint.description = complaintData.description;
-    complaint.fileUrl = complaintData.fileUrl;
-    complaint.type = complaintData.type;
-    complaint.location = complaintData.location;
-    complaint.status = ComplaintStatus.pending
-    return this.complaintRepo.create(complaint as any)
+    return this.complaintRepo.create(complaintData as any)
   }
 
  async findAll(query: QueryValue<GetAllComplaintsDto>, pagination: Pagination){
@@ -34,15 +29,15 @@ export class ComplaintService {
 
 
   async getComplaint(id: string): Promise<Complaint | null> {
-    const complaint = await this.complaintRepo.findOneById(id)
+    const complaint = await this.complaintRepo.findOneByWithPop({ id })
     if (!complaint) {
         throw new NotFoundException(`Complaint with ID ${id} not found`)
     }
     return complaint;
   }
 
-  async updateComplaint(id: string, updateData: UpdateComplaintDto, requestingUser: User): Promise<Complaint> {
-    const user = await this.userRepo.findOneById(requestingUser.id)
+  async updateComplaint(id: string, updateData: UpdateComplaintDto): Promise<Complaint> {
+    const user = await this.userRepo.findOneById(updateData.closedById)
     if(user.role !== UserRole.user && updateData.status === ComplaintStatus.in_progress) {
       updateData.closedBy = user
     }

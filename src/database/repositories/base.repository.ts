@@ -39,7 +39,7 @@ export abstract class BaseRepository<T> {
 
   async update(id: string, data: Partial<T>): Promise<T> {
     await this.repository.update(id, data as any)
-    return  await this.findOneById(id)
+    return await this.findOneById(id)
   }
 
   async delete(id: string): Promise<void> {

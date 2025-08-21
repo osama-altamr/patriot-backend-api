@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { S3 } from 'aws-sdk';
 import * as AWS from 'aws-sdk'
 import { CreateMediaFileDto } from '../api/dto/request/create-media-file.dto';
@@ -36,8 +36,8 @@ export class FileUploadService {
             let params = {
                 Bucket: bucketName,
                 Key: `media/${mediaData.userId}/${fileId}.${extension}`,
-                Expires: 1800,
-                ContentType: mediaData.contentType, 
+                Expires: 10000,
+                // ContentType: mediaData.contentType, 
             };
 
             return await s3.getSignedUrlPromise('putObject', params);
@@ -73,6 +73,10 @@ export class FileUploadService {
           }
       
           const s3Response = await s3Upload.upload(params).promise()
+          console.log(s3Response.Location)
+          Logger.debug({
+            s3: s3Response.Location
+          })
           return s3Response.Location
         } catch (error) {
           console.error('Failed to upload file to S3:', error)

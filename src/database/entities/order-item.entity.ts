@@ -6,6 +6,8 @@ import { Product } from './product.entity'
 import { Stage } from './stage.entity'
 import { Material } from './material.entity'
 import { OrderItemAction } from './order-item-action.entity'
+import { Material } from './material.entity'
+import { StagePattern } from './stage-pattern.entity'
 
 export enum OrderItemStatus {
     pending = 'pending',
@@ -21,6 +23,14 @@ export class OrderItem extends CommonEntity {
     @ManyToOne(() => Order)
     @JoinColumn({ name: 'order_id' })
     order: Order
+
+    @ManyToMany(() => Stage) 
+    @JoinTable({
+        name: 'order_item_stages', 
+        joinColumn: { name: 'order_item_id' },
+        inverseJoinColumn: { name: 'stage_id' }
+    })
+    stages: Stage[];
 
     @ManyToOne(() => Category)
     @JoinColumn({ name: 'category_id' })
@@ -48,20 +58,20 @@ export class OrderItem extends CommonEntity {
     @ManyToOne(() => Product)
     @JoinColumn({ name: 'product_id' })
     product: Product
+    
+    @ManyToOne(() => Material)
+    @JoinColumn({ name: 'material_id' })
+    material: Material
+
+    @ManyToOne(() => StagePattern)
+    @JoinColumn({ name: 'stage_pattern_id' })
+    stagePattern: StagePattern
 
     @ManyToOne(()=> Stage)
     @JoinColumn({ name: 'current_stage_id' })
-    currentStage: Stage
+    currentStage: Stage | null
 
-    @ManyToMany(() => Stage)
-    @JoinTable({
-        name: 'order_item_stages',
-        joinColumn: { name: 'order_item_id', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'stage_id', referencedColumnName: 'id' }
-    })
-    stages: Stage[]
-
-    @Column({ type: 'int' })
+    @Column({ type: 'decimal', nullable: true })
     price: number
 
     @OneToMany(() => OrderItemAction, (orderItemAction) => orderItemAction.orderItem)
@@ -79,6 +89,6 @@ export abstract class IOrderItem {
     product: string
     price: number
     note?: string
-    stages?: Stage[]
-    currentStage?: Stage
-}
+    material: Material
+    stagePattern?: StagePattern
+} 

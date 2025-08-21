@@ -12,4 +12,19 @@ export class MaterialRepository extends BaseRepository<Material> {
   ) {
     super(repository);
   }
+
+   async getAllMaterials(search?: string, stateId?:string): Promise<{ results: Material[]; total: number }> {
+        const queryBuilder = this.repository.createQueryBuilder('material')
+        if (search) {
+            const searchTerm = `%${search}%`;
+            queryBuilder.andWhere(
+                `(LOWER(material.name->>'en') LIKE LOWER(:search) OR LOWER(material.name->>'ar') LIKE LOWER(:search))`,
+                { search: searchTerm }
+            );
+        }
+      
+        const [data, total] = await queryBuilder.getManyAndCount();
+    
+        return { results: data, total }; 
+    }
 }

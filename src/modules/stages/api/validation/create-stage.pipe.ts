@@ -11,6 +11,7 @@ export class CreateStageValidation extends BaseValidationPipe<CreateStageDto> {
        description: localizedSchema.optional(),
        imageUrl: string().optional(),
        estimatedTimeMinutes: number().optional(),
+       order: number().optional(),
     })
     super(schema)
   }
