@@ -24,6 +24,7 @@ import { OrderItemActionRepository } from '../repository/order-item-action.repos
 import * as fs from 'fs/promises';
 import { ProductService } from '/products/services/product.service'
 import { PermissionRepository } from '/permissions/repository/permission.repository'
+import { In } from 'typeorm'
 
 type PackableItem = {
     id: any;
@@ -49,7 +50,36 @@ export class OrdersService {
 
     async startGlassCuttingJob(inputData: GlassCuttingDto): Promise<void> {
         const material = await this.materialService.getMaterial(inputData.materialId);
+      
+        
+
         if(material){
+            if(material.quantity <= 10 ) {
+                const admins = await this.permissionRepo.getAllWithPop({
+                    accessType: In(['admin', 'employee'])
+                    })
+            if(admins && admins.length > 0){
+                await Promise.all(admins.map(async admin => {
+                  if(admin.scopes.some(scope => scope.feature === 'materials')) {
+                     await this.notificationService.createNotification({
+                        title: {
+                            en: 'Low Stock Alert!',
+                            ar: 'تنبيه انخفاض المخزون!'
+                        },
+                        content: {
+                            en: `The quantity for material "${material.name.en}" has dropped to ${material.quantity}. Please reorder soon.`,
+                            ar: `انخفضت كمية المادة "${material.name.ar}" إلى ${material.quantity}. يرجى إعادة الطلب قريباً.`
+                        },
+                      isSeen: false,
+                      recordId: material.id,
+                      type: 'material',
+                      userId: admin.user.id,
+                    });
+                  }
+                }))
+              }  
+            }
+
             await this.materialService.updateMaterial(material.id, {
                 quantity: material.quantity - 1
             } as any)
@@ -119,7 +149,6 @@ export class OrdersService {
             ref: newRef,
             user,
         } as any) as Order
-
         await this.notificationService.createNotification({
             title: {
                 en: `New Order #${order.ref }`,
@@ -131,6 +160,7 @@ export class OrdersService {
               },
             recordId: order.id,
             type: 'order',
+            isSeen: false,
             userId: user.id,
             user: user,
         })
@@ -154,6 +184,7 @@ export class OrdersService {
                     ar: `يحتوي الطلب #${order.ref} على عناصر مخصصة تتطلب تحديد السعر.`
                 },
                 recordId: order.id,
+                isSeen: false,
                 type: 'order',
                 userId: admin.user.id,
             });
@@ -166,6 +197,33 @@ export class OrdersService {
         if(order.address && order.address.stateId) {
             order.address.state = await this.stateService.getState(order.address.stateId)
         }
+
+        const admins = await this.permissionRepo.getAllWithPop({
+            accessType: In(['admin', 'employee'])
+            })
+        
+    if(admins && admins.length > 0){
+        await Promise.all(admins.map(async admin => {
+          const orderRef = order.ref
+          if(admin.scopes.some(scope => scope.feature === 'orders')) {
+             await this.notificationService.createNotification({
+                title: {
+                    en: `New Order Received: #${orderRef}`,
+                    ar: `تم استلام طلب جديد: #${orderRef}`
+                },
+                content: {
+                    en: `A new order has been placed by ${user.name}. Please review and process it.`,
+                    ar: `تم تقديم طلب جديد من قبل ${user.name}. يرجى مراجعته وتجهيزه.`
+                },
+              isSeen: false,
+             
+              recordId: order.id,
+              type: 'order',
+              userId: admin.user.id,
+            });
+          }
+        }))
+      }    
         return await this.ordersRepository.findOneById(order.id)
     }
 
@@ -202,6 +260,36 @@ export class OrdersService {
                 updateOrderDto.status = OrderStatus.outForDelivery
                 updateOrderDto.outForDeliveryAt = new Date()
             }
+            this.notificationService.createNotification({
+                title: {
+                    en: "New Delivery Assignment",
+                    ar: "مهمة توصيل جديدة"
+                },
+                content: {
+                    en: `You have been assigned to deliver order #${order.ref}. Please check your delivery details.`,
+                    ar: `تم تعيينك لتوصيل الطلب رقم ${order.ref}. يرجى مراجعة تفاصيل التوصيل.`
+                },
+                type: 'order',
+                recordId: order.id,
+                isSeen: false,
+                userId: updateOrderDto.driverId,
+            })
+    
+            this.notificationService.createNotification({
+                title: {
+                    en: "Order Status Update",
+                    ar: "تحديث حالة الطلب"
+                },
+                content: {
+                    en: `Your order #${order.ref} is out for delivery and has been assigned to a driver.`,
+                    ar: `طلبك رقم ${order.ref} في طريق التوصيل وتم تعيين سائق له.`
+                },
+                type: 'order',
+                recordId: order.id,
+                isSeen: false,
+                userId: order.user.id,
+            });
+
             delete updateOrderDto.driverId;
         }
         if(updateOrderDto.status === OrderStatus.delivered){

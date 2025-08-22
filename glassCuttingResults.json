@@ -1,14 +1,35 @@
 {
   "materialDimensions": {
-    "width": "230",
-    "height": "250"
+    "width": "800",
+    "height": "700"
   },
   "packedItems": [
     {
-      "id": "234dd8eb-4ab5-4154-8b0f-c1ca5c54d8f7",
-      "width": 200,
-      "height": 249,
+      "id": "8295f1d3-d8d4-45c4-9f24-6669d3f0b355",
+      "width": 530,
+      "height": 230,
       "x": 0,
+      "y": 0
+    },
+    {
+      "id": "23bd8c24-c503-4f69-adb2-faa1a7dcb428",
+      "width": 530,
+      "height": 230,
+      "x": 0,
+      "y": 231
+    },
+    {
+      "id": "2e600fb6-3ba2-4688-bb06-c7061c55b0ff",
+      "width": 530,
+      "height": 230,
+      "x": 0,
+      "y": 462
+    },
+    {
+      "id": "111c007f-1ada-44d6-872d-78bab98b2198",
+      "width": 230,
+      "height": 530,
+      "x": 531,
       "y": 0
     }
   ],
@@ -19,9 +40,29 @@
       "height": 249
     },
     {
+      "id": "9df238d9-7af3-4059-a079-0209a21da5a8",
+      "width": 230,
+      "height": 530
+    },
+    {
       "id": "1c73ae68-3171-4339-889c-11eae337fc0b",
       "width": 200,
       "height": 249
+    },
+    {
+      "id": "ee9fd004-ef09-4e43-806e-86684392c78b",
+      "width": 230,
+      "height": 530
+    },
+    {
+      "id": "234dd8eb-4ab5-4154-8b0f-c1ca5c54d8f7",
+      "width": 200,
+      "height": 249
+    },
+    {
+      "id": "44205db9-0698-479b-bddb-c7ce706204a9",
+      "width": 230,
+      "height": 530
     },
     {
       "id": "58a73956-6a68-4327-aa94-af52204be4e7",
@@ -39,6 +80,6 @@
       "height": 249
     }
   ],
-  "utilization": 0.8660869565217392,
-  "originalMaterialId": "5b68d45e-8289-4d24-851d-208af073e034"
+  "utilization": 0.8707142857142857,
+  "originalMaterialId": "84e27f07-7279-4067-aa66-6b7a0b01862c"
 }

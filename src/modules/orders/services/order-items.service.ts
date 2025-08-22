@@ -18,6 +18,7 @@ import { PermissionService } from '/permissions/services/permission.service'
 import { NotificationRepository } from '/notifications/repository/notification.repository'
 import { CreateOrderItemAction } from '../api/dto/create-order-item-action.dto'
 import { StagePatternRepository } from '/stage-pattern/repository/stage-pattern.repository'
+import { NotificationService } from '/notifications/services/notification.service'
 @Injectable()
 export class OrderItemService {
     constructor(private readonly ordersRepository: OrdersRepository,
@@ -31,6 +32,8 @@ export class OrderItemService {
         private readonly stageRepo: StageRepository,
         private readonly orderItemActionRepository: OrderItemActionRepository,
         private readonly stagePatternRepo: StagePatternRepository,
+        private readonly notificationService: NotificationService,
+        
         
     ) { }
 
@@ -94,9 +97,42 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
     if (orderItemData.currentStageId !== undefined) {
         if (orderItemData.currentStageId === null) {
             orderItemData.currentStage = null;
+            await this.notificationService.createNotification({
+                title: {
+                    en: `Order #${orderItem.order.ref} Updated`,
+                    ar: `تحديث الطلب #${orderItem.order.ref}`
+                  },
+                content: {
+                    en: `Your item "${orderItem.product.name.en}" is now complete!`,
+                    ar: `اكتمل تجهيز العنصر الخاص بك "${orderItem.product.name.ar}"!`
+                },
+                recordId: orderItem.order.id,
+                type: 'order',
+                isSeen: false,
+                userId: orderItem.order.user.id,
+              });
+
         } else {
             orderItemData.currentStage = await this.stageRepo.findOneById(orderItemData.currentStageId);
-        }
+            await this.notificationService.createNotification({
+                title: {
+                  en: `Order #${orderItem.order.ref} Updated`,
+                  ar: `تحديث الطلب #${orderItem.order.ref}`
+                },
+                content: {
+                  en: orderItemData.currentStage
+                    ? `Your item has moved to the "${orderItemData.currentStage.name.en}" stage.`
+                    : 'Your item is awaiting the next stage.',
+                  ar: orderItemData.currentStage
+                    ? `لقد انتقل العنصر الخاص بك إلى مرحلة "${orderItemData.currentStage.name.ar}".`
+                    : 'العنصر الخاص بك في انتظار المرحلة التالية.'
+                },
+                recordId: orderItem.order.id,
+                type: 'order',
+                isSeen: false,
+                userId: orderItem.order.user.id,
+              });
+         }
         delete orderItemData.currentStageId;
     }
 
@@ -172,7 +208,6 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
     }
 
     async createAction(itemId: string, reqData: CreateOrderItemAction){
-     Logger.debug({ reqData }, 'request Dataaaaaaaaaaaaaaaaaaaa')
         const orderItem = await this.orderItemRepository.findOneBy({ id: itemId })
         if (!orderItem) {
             throw new NotFoundException('Order item not found');
@@ -196,7 +231,6 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
             orderItem: { id: orderItem.id },
             stage: { id: orderItem.currentStage.id },
           })
-          console.log('DOneeeeeeeeeeeeeeee')
        return  await this.orderItemActionRepository.update(currentAction.id, {
            endsAt: new Date()
        })

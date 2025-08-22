@@ -23,19 +23,23 @@ import { PermissionModule } from '/permissions/permission.module'
 import { StateModule } from '/states/state.module'
 import { CityModule } from '/city/city.module'
 import { StagePatternModule } from '/stage-pattern/stage-pattern.module'
+import { TaskSchedulingService } from './services/task-scheduling.service'
+import { ScheduleModule } from '@nestjs/schedule'
 
 @Module({
     imports: [
-    MailerModule,
-    TypeOrmModule.forFeature([Order, OrderItem, OrderCode, OrderItemAction]),
-    ProductModule, NotificationModule, UserModule, StageModule, MaterialModule, CategoryModule, PermissionModule, 
-    StateModule, CityModule,ProductModule,
+   TypeOrmModule.forFeature([Order, OrderItem, OrderCode, OrderItemAction]),
+   UserModule,
+   MailerModule,
+    NotificationModule,
     PermissionModule,
-    UserModule,
+    ProductModule,  UserModule, StageModule, MaterialModule, CategoryModule, PermissionModule, 
+    StateModule, CityModule,ProductModule,
+    
     StagePatternModule
 ],
     controllers: [OrdersController],
-    providers: [OrdersService, OrderCodeService, OrdersRepository, OrderItemService, OrderItemActionRepository, OrderItemRepository, OrderCodeRepository, QrcodeService],
+    providers: [OrdersService, OrderCodeService, OrdersRepository, OrderItemService, OrderItemActionRepository, OrderItemRepository, OrderCodeRepository, QrcodeService, TaskSchedulingService,],
     exports: [ OrdersService, OrdersRepository, OrderCodeRepository, OrderItemActionRepository]
 })
 export class OrdersModule { } 

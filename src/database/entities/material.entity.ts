@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm'
 import { CommonEntity } from './common.entity'
 import { MaterialGlassType, MaterialType } from '/materials/api/enums/material.enum'
+import { LocalizedString } from '@Package/api'
 
 @Entity()
 export class Material extends CommonEntity {
@@ -8,10 +9,10 @@ export class Material extends CommonEntity {
   id: string
 
   @Column({ type: 'jsonb' }) 
-  name: object
+  name:  LocalizedString
 
   @Column({ type: 'jsonb' }) 
-  description: object 
+  description:  LocalizedString 
 
   @Column({
     type: 'varchar',

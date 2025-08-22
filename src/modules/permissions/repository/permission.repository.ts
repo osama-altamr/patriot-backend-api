@@ -90,7 +90,7 @@ export class PermissionRepository extends BaseRepository<Permission> {
     return await this.repository.find({
       where: query ?? {
       },
-      relations: ['user', 'stage']
+      relations: ['user', 'stage',]
     })
   }
 }

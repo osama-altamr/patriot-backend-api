@@ -13,6 +13,7 @@ import { StateService } from '/states/services/state.service';
 import { CityService } from '/city/services/city.service';
 import { PermissionRepository } from '/permissions/repository/permission.repository';
 import { UserRole } from '../api/enums/user.enum';
+import { NotificationService } from '/notifications/services/notification.service';
 
 @Injectable()
 export class UserService {
@@ -26,7 +27,6 @@ export class UserService {
     private readonly mailerService: MailerService,
     private readonly stateService: StateService,
     private readonly cityService: CityService,
-
   ) {}
   calculateExpiration (issuedAt: Date): Date {
     return addSeconds(issuedAt, +this.environmentService.get('jwt.jwtExpiredRefresh'))

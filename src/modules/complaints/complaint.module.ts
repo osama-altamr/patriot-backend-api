@@ -5,9 +5,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Complaint } from 'src/database';
 import { ComplaintRepository } from './repository/complaint.repository';
 import { UserModule } from '/users/user.module';
+import { PermissionModule } from '/permissions/permission.module';
+import { NotificationModule } from '/notifications/notification.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Complaint]), UserModule],
+  imports: [TypeOrmModule.forFeature([Complaint]), UserModule, PermissionModule, NotificationModule],
   providers: [ComplaintService, ComplaintRepository],
   controllers: [ComplaintController],
   exports: [ComplaintService, ComplaintRepository],

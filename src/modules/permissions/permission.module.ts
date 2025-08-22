@@ -14,4 +14,5 @@ import { StageModule } from '/stages/stage.module';
   providers: [PermissionService, PermissionRepository],
   exports: [PermissionService, PermissionRepository],
 })
+
 export class PermissionModule {}
