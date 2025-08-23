@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { forwardRef, Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { Order } from '../../database/entities/order.entity'
 import { OrderItem } from '../../database/entities/order-item.entity'
@@ -29,17 +29,19 @@ import { ScheduleModule } from '@nestjs/schedule'
 @Module({
     imports: [
    TypeOrmModule.forFeature([Order, OrderItem, OrderCode, OrderItemAction]),
+   forwardRef(() => ProductModule),
+   forwardRef(() => CategoryModule),
    UserModule,
    MailerModule,
     NotificationModule,
     PermissionModule,
-    ProductModule,  UserModule, StageModule, MaterialModule, CategoryModule, PermissionModule, 
-    StateModule, CityModule,ProductModule,
+      UserModule, StageModule, MaterialModule, PermissionModule, 
+    StateModule, CityModule,
     
     StagePatternModule
 ],
     controllers: [OrdersController],
     providers: [OrdersService, OrderCodeService, OrdersRepository, OrderItemService, OrderItemActionRepository, OrderItemRepository, OrderCodeRepository, QrcodeService, TaskSchedulingService,],
-    exports: [ OrdersService, OrdersRepository, OrderCodeRepository, OrderItemActionRepository]
+    exports: [ OrdersService, OrdersRepository, OrderItemRepository, OrderCodeRepository, OrderItemActionRepository]
 })
 export class OrdersModule { } 

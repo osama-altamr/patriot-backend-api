@@ -8,7 +8,7 @@ export enum ReportType {
   employee = 'employee',
   order = 'order',
   complaint = 'complaint',
-  // Sales
+  sale = 'sale'
 }
 
 interface OrderSummary {
@@ -104,6 +104,19 @@ export class Report extends CommonEntity {
 
   @Column({ type: 'jsonb', nullable: true }) 
   employeeBreakdownByType: EmployeeBreakdownByType
+
+  @Column({ type: 'jsonb', nullable: true }) 
+  saleSummary: any
+  @Column({ type: 'jsonb', nullable: true }) 
+  saleDailyTrend: any
+  @Column({ type: 'jsonb', nullable: true }) 
+  saleBreakdownByProduct: any
+  @Column({ type: 'jsonb', nullable: true }) 
+  saleBreakdownByCategory: any
+  @Column({ type: 'jsonb', nullable: true }) 
+  salesBreakdownByState: any
+  @Column({ type: 'jsonb', nullable: true }) 
+  salesBreakdownByCity: any
 
   orders: IOrder[]
   complaints: IComplaint[]

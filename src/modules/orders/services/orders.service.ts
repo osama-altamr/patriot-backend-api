@@ -9,7 +9,6 @@ import { Pagination, QueryValue } from '@Package/api'
 import { GetAllOrdersDto } from '../api/dto/get-all.dto'
 import { NotificationService } from '/notifications/services/notification.service'
 import { UserService } from '/users/services/user.service'
-import { OrderCodeService } from './order-code.service'
 import { OrderItemService } from './order-items.service'
 import { GlassCuttingDto } from '../api/dto/glass-cutting.dto'
 import { MaterialService } from '/materials/services/material.service'
@@ -46,13 +45,11 @@ export class OrdersService {
         private readonly stateService: StateService,
         private readonly cityService: CityService,
         private readonly permissionRepo: PermissionRepository,
+
     ) { }
 
     async startGlassCuttingJob(inputData: GlassCuttingDto): Promise<void> {
         const material = await this.materialService.getMaterial(inputData.materialId);
-      
-        
-
         if(material){
             if(material.quantity <= 10 ) {
                 const admins = await this.permissionRepo.getAllWithPop({
@@ -307,7 +304,7 @@ export class OrdersService {
 
     async remove(id: string): Promise<void> {
         await this.findOne(id)
-        await this.ordersRepository.delete(id)
+        await this.ordersRepository.removeWithAllRelations(id)
     }
 
     async getOrderItems(orderId: string, currentStageId: string): Promise<OrderItem[]> {
@@ -354,4 +351,5 @@ export class OrdersService {
         const filePath = path.join(process.cwd(), 'glassCuttingResults.json');
         await fs.writeFile(filePath, JSON.stringify({}, null, 2));
     }
+    
 } 

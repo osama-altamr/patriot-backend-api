@@ -18,8 +18,10 @@ export class PermissionService {
 
   async createPermission(permissionData: CreatePermissionDto): Promise<Permission| Permission[]> {
      const user = await this.userRepo.findOneById(permissionData.userId)
-     const stage = await this.stageRepo.findOneById(permissionData.stageId)
-     
+     let stage
+     if(permissionData.stageId){
+      stage = await this.stageRepo.findOneById(permissionData.stageId)
+     }
      permissionData.user = user
      permissionData.stage = stage
     return await this.permissionRepo.create(permissionData as any)

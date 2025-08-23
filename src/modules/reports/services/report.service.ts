@@ -4,14 +4,12 @@ import { Report, ReportType } from 'src/database';
 import { CreateReportlDto } from '../api/dto/request/create-report.dto';
 import { OrdersRepository } from '/orders/repository/orders.repository';
 import { ExcelExportService } from './genereate-xlsx.service';
-import { FileUploadService } from '/aws/services/s3.service';
 import { ComplaintRepository } from '/complaints/repository/complaint.repository';
-import { ComplaintService } from '/complaints/services/complaint.service';
 import { PermissionRepository } from '/permissions/repository/permission.repository';
-import { OrderCodeRepository } from '/orders/repository/order-code.repository';
-import { OrderItemRepository } from '/orders/repository/order-item.repository';
 import { OrderItemActionRepository } from '/orders/repository/order-item-action.repository';
 import { randomUUID } from 'crypto';
+import { ProductRepository } from '/products/repository/product.repository';
+import { CategoryRepository } from '/categories/repository/category.repository';
 
 @Injectable()
 export class ReportService {
@@ -20,8 +18,11 @@ export class ReportService {
     private readonly orderRepo: OrdersRepository,
     private readonly orderItemActionRepo: OrderItemActionRepository,
     private readonly complaintRepo: ComplaintRepository,
+    private readonly productRepo: ProductRepository,
+    private readonly categoryRepo: CategoryRepository,
     private readonly permissionRepo: PermissionRepository,
     private readonly excelService: ExcelExportService,
+    
   ) {}
 
   async create(body: CreateReportlDto){
@@ -87,6 +88,56 @@ export class ReportService {
 
       return report
     }
+
+    if(body.type === ReportType.sale) {
+      const [
+        salesSummary,
+        dailySales,
+        productBreakdown,
+        categoryBreakdown,
+        stateBreakdown,
+        cityBreakdown,
+      ] = await Promise.all([
+        this.orderRepo.generateSalesSummary(body.startDate, body.endDate),
+        this.orderRepo.generateDailySalesTrend(body.startDate, body.endDate),
+        this.productRepo.generateSalesBreakdownByProduct(body.startDate, body.endDate),
+        this.categoryRepo.generateSalesBreakdownByCategory(body.startDate, body.endDate),
+        this.orderRepo.generateSalesBreakdownByState(body.startDate, body.endDate),
+        this.orderRepo.generateSalesBreakdownByCity(body.startDate, body.endDate),
+      ]);
+
+      const salesReportData = {
+        saleSummary: salesSummary,
+        saleDailyTrend: dailySales,
+        saleBreakdownByProduct: productBreakdown.map(pr => {
+          pr.id = randomUUID()
+          return pr
+        }),
+        saleBreakdownByCategory: categoryBreakdown.map(ct => {
+          ct.id = randomUUID()
+          return ct
+        }),
+        salesBreakdownByState: stateBreakdown.map(state => {
+          state.id = randomUUID()
+          return state
+        }),
+        salesBreakdownByCity: cityBreakdown.map(city => {
+          city.id = randomUUID()
+          return city
+        }),
+      };
+
+      const xlsxUrl = await this.excelService.createSalesReportFile(salesReportData);
+      body.xlsxUrl = xlsxUrl;
+
+      const report = await this.reportRepo.create({
+        ...body,
+       ...salesReportData
+      }) as Report;
+      return report
+    }
+    
+    
     return await this.reportRepo.create(body)
   }
   async getAllReports(): Promise<Report[]> {

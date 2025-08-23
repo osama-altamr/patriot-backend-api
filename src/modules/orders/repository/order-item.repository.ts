@@ -6,6 +6,7 @@ import { EntityPropertyNotFoundError, Repository } from "typeorm";
 
 @Injectable()
 export class OrderItemRepository extends BaseRepository<OrderItem> {
+    
     constructor(
         @InjectRepository(OrderItem)
         private readonly orderItemRepository: Repository<OrderItem>
@@ -18,21 +19,31 @@ export class OrderItemRepository extends BaseRepository<OrderItem> {
     }
   
     async findOneBy(query: object) {
-        try {
-            console.log(query)
-          return await this.repository.findOne({
-            where: { ...query },
-            relations: ['stages', 'stagePattern', 'currentStage', 'order', 'orderItemActions.stage'],
-          });
-        } catch (error) {
+      try {
+          return await this.repository
+              .createQueryBuilder('orderItem')
+              .leftJoinAndSelect('orderItem.stages', 'stages', null, { order: { order: 'ASC' } }) // Order stages
+              .leftJoinAndSelect('orderItem.stagePattern', 'stagePattern')
+              .leftJoinAndSelect('orderItem.currentStage', 'currentStage')
+              .leftJoinAndSelect('orderItem.order', 'order')
+              .leftJoinAndSelect('order.user', 'user')
+              .leftJoinAndSelect('order.driver', 'driver')
+              .leftJoinAndSelect('orderItem.orderItemActions', 'orderItemActions')
+              .leftJoinAndSelect('orderItemActions.stage', 'actionStage')
+              .leftJoinAndSelect('orderItem.category', 'category')
+              .leftJoinAndSelect('orderItem.product', 'product')
+              .leftJoinAndSelect('orderItem.material', 'material')
+              .where(query)
+              .getOne();
+      } catch (error) {
           if (error instanceof EntityPropertyNotFoundError) {
-            return await this.repository.findOne({
-              where: { ...query }
-            });
+              return await this.repository.findOne({
+                  where: { ...query }
+              });
           }
           throw error;
-        }
       }
+  }
     async  findAllWithPop(query: object){
         return this.repository.find({
           where: query,
@@ -46,6 +57,7 @@ export class OrderItemRepository extends BaseRepository<OrderItem> {
             product: true,
             category: true,
             material: true,
+            order: true,
           },
           order: {
             createdAt: 'DESC', 

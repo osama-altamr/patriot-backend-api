@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ProductService } from './services/product.service';
 import { ProductController } from './api/controllers/prodcut.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,9 +9,10 @@ import { ProductReviewModule } from '/product-reviews/product-review.module';
 import { StageModule } from '/stages/stage.module';
 import { UserModule } from '/users/user.module';
 import { NotificationModule } from '/notifications/notification.module';
+import { OrdersModule } from '/orders/orders.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product]), CategoryModule, ProductReviewModule, StageModule,UserModule, NotificationModule],
+  imports: [TypeOrmModule.forFeature([Product]), forwardRef(() => OrdersModule), CategoryModule, ProductReviewModule, StageModule,UserModule, NotificationModule],
   providers: [ProductService, ProductRepository],
   controllers: [ProductController],
   exports: [ProductService, ProductRepository],

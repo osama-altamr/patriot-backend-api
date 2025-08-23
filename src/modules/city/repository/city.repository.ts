@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Repository } from 'typeorm';
 import { BaseRepository, City } from '../../../database';
+import { GetAllCitiesDto } from '../api/dto/request/get-all.dto';
 
 @Injectable()
 export class CityRepository extends BaseRepository<City> {
@@ -23,7 +24,9 @@ export class CityRepository extends BaseRepository<City> {
       return this.repository.findOne({ where: {id}, relations: ['state'] } as any)
     }
 
-    async getAllCities(search?: string, stateId?:string): Promise<{ results: City[]; total: number }> {
+    async getAllCities(search?: string, stateId?:string, query?: GetAllCitiesDto): Promise<{ results: City[]; total: number }> {
+      // const { page, take, needPagination, startDate, endDate } = query;
+
       const queryBuilder = this.repository.createQueryBuilder('city')
           .leftJoinAndSelect('city.state', 'state')
           if(stateId){
@@ -37,6 +40,14 @@ export class CityRepository extends BaseRepository<City> {
               { search: searchTerm }
           );
       }
+
+    //   if (startDate) {
+    //     queryBuilder.andWhere('city.createdAt >= :startDate', { startDate });
+    // }
+    //     if (endDate) {
+    //       queryBuilder.andWhere('city.createdAt <= :endDate', { endDate });
+    //   }
+
     
       const [data, total] = await queryBuilder.getManyAndCount();
   

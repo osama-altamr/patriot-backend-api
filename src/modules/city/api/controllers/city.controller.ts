@@ -7,6 +7,7 @@ import { UpdateCityDto } from "../dto/request/update-city.dto";
 import { City } from "src/database"; // Adjust path
 import { CreateCityValidation } from "../validation/create-city.pipe";
 import { UpdateCityValidation } from "../validation/update-city.pipe";
+import { GetAllOrdersDto } from "/orders/api/dto/get-all.dto";
 
 @Controller("cities")
 export class CityController {
@@ -19,8 +20,9 @@ export class CityController {
     }
 
     @Get()
-    async getAll(@Query('search') search?: string, @Query('stateId') stateId?: string){
-        return await this.cityService.getAllCities(search, stateId);
+    async getAll(@Query('search') search?: string, @Query('stateId') stateId?: string, @Query() query?: GetAllOrdersDto){
+        
+        return await this.cityService.getAllCities(search, stateId, query);
     }
 
     @Get(':id')

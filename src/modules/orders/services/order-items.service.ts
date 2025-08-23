@@ -33,8 +33,6 @@ export class OrderItemService {
         private readonly orderItemActionRepository: OrderItemActionRepository,
         private readonly stagePatternRepo: StagePatternRepository,
         private readonly notificationService: NotificationService,
-        
-        
     ) { }
 
 async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promise<OrderItem> {
@@ -46,6 +44,10 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
 
     if(orderItemData.categoryId){
         category= await this.categoryRepo.findOneById(orderItemData.categoryId)
+    }
+
+    if(!orderItemData.categoryId && product.category){
+        category= await this.categoryRepo.findOneById(product.category.id)
     }
     if(orderItemData.materialId){
         material= await this.materialRepo.findOneById(orderItemData.materialId)
@@ -94,6 +96,7 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
         throw new NotFoundException('Order item not found');
     }
 
+    console.log(orderItem)
     if (orderItemData.currentStageId !== undefined) {
         if (orderItemData.currentStageId === null) {
             orderItemData.currentStage = null;
@@ -113,7 +116,9 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
               });
 
         } else {
+
             orderItemData.currentStage = await this.stageRepo.findOneById(orderItemData.currentStageId);
+            
             await this.notificationService.createNotification({
                 title: {
                   en: `Order #${orderItem.order.ref} Updated`,
@@ -142,7 +147,7 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
         })
         delete orderItemData.stageIds;
     }
-
+    Logger.debug({ orderItemData },'Afterrrrrrrrrrrrr')
     const updatedItem = await this.orderItemRepository.update(orderItem.id, orderItemData)
     await this.checkCompletedOrder(orderItem.order.id)
     return updatedItem
@@ -204,6 +209,10 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
         recordId: orderId,
         user: order.user,
       })
+       } else {
+        await this.ordersRepository.update(orderId, {
+            status: OrderStatus.inProgress,
+        })
        }
     }
 

@@ -3,12 +3,174 @@
 import { Injectable } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
 import { FileUploadService } from '/aws/services/s3.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class ExcelExportService {
     constructor(
        private readonly fileUploadService: FileUploadService,
     ) {}
+
+  async createSalesReportFile(data: any): Promise<string> {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Patriot';
+    workbook.created = new Date();
+    
+    const worksheet = workbook.addWorksheet('Sales Report');
+
+    // --- Style Definitions ---
+    const sectionHeaderStyle: Partial<ExcelJS.Style> = {
+      font: { name: 'Calibri', size: 16, bold: true, color: { argb: 'FFFFFFFF' } },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF002060' } }, // Dark Blue
+      alignment: { vertical: 'middle', horizontal: 'center' },
+    };
+
+    const tableHeaderStyle: Partial<ExcelJS.Style> = {
+      font: { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } }, // Medium Blue
+      border: {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      },
+      alignment: { vertical: 'middle', horizontal: 'center' },
+    };
+    
+    const stripedRowFill: ExcelJS.Fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFDDEBF7' } // Light Blue
+    };
+
+    const thinDarkGreyBorder: ExcelJS.Border = {
+      style: 'thin',
+      color: { argb: 'FF404040' } 
+    };
+
+    const cellBorderStyle: Partial<ExcelJS.Borders> = {
+      top:    thinDarkGreyBorder,
+      left:   thinDarkGreyBorder,
+      bottom: thinDarkGreyBorder,
+      right:  thinDarkGreyBorder,
+    };
+
+    // --- Helper Functions ---
+    const addSectionHeader = (title: string, mergeRange: string) => {
+      worksheet.addRow([]); // Spacer row
+      const row = worksheet.addRow([title]);
+      worksheet.mergeCells(mergeRange);
+      const mergedCell = worksheet.getCell(row.number, 1);
+      mergedCell.style = sectionHeaderStyle;
+      row.height = 30;
+    };
+
+    const addTableHeaders = (headers: string[]) => {
+      const headerRow = worksheet.addRow(headers);
+      headerRow.eachCell((cell) => {
+        cell.style = tableHeaderStyle;
+      });
+      headerRow.height = 20;
+    };
+    
+    // --- 1. Sales Summary Section ---
+    addSectionHeader('Sales Summary', `A${worksheet.rowCount}:F${worksheet.rowCount}`);
+    addTableHeaders(['Metric', 'Value']);
+    const summaryData = [
+        ['Total Revenue', data.saleSummary.totalRevenue],
+        ['Total Orders', data.saleSummary.totalOrders],
+        ['Average Order Value', data.saleSummary.averageOrderValue],
+        ['Total Items Sold', data.saleSummary.totalItemsSold]
+    ];
+    summaryData.forEach(([metric, value], index) => {
+        const row = worksheet.addRow([metric, value]);
+        row.getCell(1).font = { bold: true };
+        row.getCell(2).font = { bold: true };
+        if (index === 0 || index === 2) { // Currency values
+            row.getCell(2).numFmt = '#,##0.00';
+        }
+        row.eachCell(cell => cell.border = cellBorderStyle);
+    });
+
+    // --- 2. Daily Sales Trend Section ---
+    addSectionHeader('Daily Sales Trend', `A${worksheet.rowCount}:F${worksheet.rowCount}`);
+    addTableHeaders(['Date', 'Total Revenue', 'Order Count']);
+    data.saleDailyTrend.forEach((item, index) => {
+      const row = worksheet.addRow([item.date, item.totalRevenue, item.orderCount]);
+      row.getCell(2).numFmt = '#,##0.00';
+      row.eachCell(cell => {
+          cell.border = cellBorderStyle;
+          if(index % 2 !== 0) cell.fill = stripedRowFill;
+      });
+    });
+
+    // --- 3. Product Breakdown Section ---
+    addSectionHeader('Sales Breakdown by Product', `A${worksheet.rowCount}:F${worksheet.rowCount}`);
+    addTableHeaders(['Product ID', 'Product Name (EN)', 'Quantity Sold', 'Total Revenue']);
+    data.saleBreakdownByProduct.forEach((item, index) => {
+      const row = worksheet.addRow([item.productId, item.productName.en, item.quantitySold, item.totalRevenue]);
+      row.getCell(4).numFmt = '#,##0.00';
+      row.eachCell(cell => {
+          cell.border = cellBorderStyle;
+          if(index % 2 !== 0) cell.fill = stripedRowFill;
+      });
+    });
+
+    // --- 4. Category Breakdown Section ---
+    addSectionHeader('Sales Breakdown by Category', `A${worksheet.rowCount}:F${worksheet.rowCount}`);
+    addTableHeaders(['Category ID', 'Category Name (EN)', 'Quantity Sold', 'Total Revenue']);
+    data.saleBreakdownByCategory.forEach((item, index) => {
+      const row = worksheet.addRow([item.categoryId, item.categoryName.en, item.quantitySold, item.totalRevenue]);
+      row.getCell(4).numFmt = '#,##0.00';
+      row.eachCell(cell => {
+          cell.border = cellBorderStyle;
+          if(index % 2 !== 0) cell.fill = stripedRowFill;
+      });
+    });
+
+    // --- 5. State Breakdown Section ---
+    addSectionHeader('Sales Breakdown by State', `A${worksheet.rowCount}:F${worksheet.rowCount}`);
+    addTableHeaders(['State ID', 'State Name (EN)', 'Order Count', 'Total Revenue']);
+    data.salesBreakdownByState.forEach((item, index) => {
+      const row = worksheet.addRow([item.stateId, item.stateName.en, item.orderCount, item.totalRevenue]);
+      row.getCell(4).numFmt = '#,##0.00';
+      row.eachCell(cell => {
+          cell.border = cellBorderStyle;
+          if(index % 2 !== 0) cell.fill = stripedRowFill;
+      });
+    });
+
+    // --- 6. City Breakdown Section ---
+    addSectionHeader('Sales Breakdown by City', `A${worksheet.rowCount}:F${worksheet.rowCount}`);
+    addTableHeaders(['City ID', 'City Name (EN)', 'State Name (EN)', 'Order Count', 'Total Revenue']);
+    data.salesBreakdownByCity.forEach((item, index) => {
+      const row = worksheet.addRow([item.cityId, item.cityName.en, item.stateName.en, item.orderCount, item.totalRevenue]);
+      row.getCell(5).numFmt = '#,##0.00';
+      row.eachCell(cell => {
+          cell.border = cellBorderStyle;
+          if(index % 2 !== 0) cell.fill = stripedRowFill;
+      });
+    });
+
+    // --- Finalize and Save ---
+    worksheet.columns.forEach(column => {
+        let maxLength = 0;
+        column.eachCell({ includeEmpty: true }, (cell) => {
+            const columnLength = cell.value ? cell.value.toString().length : 10;
+            if (columnLength > maxLength) {
+                maxLength = columnLength;
+            }
+        });
+        column.width = maxLength < 12 ? 12 : maxLength + 4;
+    });
+
+    const fileName = `${uuidv4()}-sales-report.xlsx`;
+    const buffer  = await workbook.xlsx.writeBuffer()
+    const url = await this.fileUploadService.uploadExcelBufferFileToS3(buffer as any, fileName)
+
+    return url
+  }
+
   async createOrderReportFile(
     reportType: 'order' | 'employee' | 'complaint',
     data: any,
@@ -118,7 +280,7 @@ export class ExcelExportService {
 
     worksheet.getColumn('E').width = 15; // Price
     worksheet.getColumn('E').alignment = { horizontal: 'center', vertical: 'middle' };
-    worksheet.getColumn('E').numFmt = '"$"#,##0.00';
+    worksheet.getColumn('E').numFmt = '""#,##0.00';
     worksheet.getColumn('F').width = 20; // Date Created
     worksheet.getColumn('F').numFmt = 'yyyy-mm-dd hh:mm';
     worksheet.getColumn('F').alignment = { horizontal: 'center', vertical: 'middle' };
@@ -149,7 +311,7 @@ export class ExcelExportService {
     // Add the sum formula for the price
     const priceSumCell = worksheet.getCell(`E${summaryStartRow}`);
     priceSumCell.value = { formula: `SUM(E${tableStartRow + 1}:E${tableEndRow})` }; // Sums data rows only
-    priceSumCell.numFmt = '"$"#,##0.00';
+    priceSumCell.numFmt = '""#,##0.00';
     priceSumCell.font = { bold: true, size: 14 };
 
     // Add the total orders count

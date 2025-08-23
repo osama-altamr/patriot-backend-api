@@ -35,6 +35,8 @@ export class ProductService {
       id: In( productData.stageIds)
     })
 
+    Logger.debug({ st: product.stages })
+    const savedProduct = await this.productRepo.create(product) as Product
     const users = await this.userRepo.findBy({
       role: UserRole.user
     })
@@ -51,13 +53,12 @@ export class ProductService {
             ar: `تفقد المنتج الجديد: ${product.name.ar}`
         },
               type: 'product',
-              recordId: product.id,
+              recordId: savedProduct.id,
               userId: user.id,
         })
       }))
     }
-    Logger.debug({ st: product.stages })
-    return await this.productRepo.create(product)
+    return savedProduct
   }
 
   async getAllProducts(categoryId: string): Promise<Product[]> {

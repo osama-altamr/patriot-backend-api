@@ -10,9 +10,11 @@ import { AWSModule } from '/aws/aws.module';
 import { ComplaintModule } from '/complaints/complaint.module';
 import { UserModule } from '/users/user.module';
 import { PermissionModule } from '/permissions/permission.module';
+import { ProductModule } from '/products/product.module';
+import { CategoryModule } from '/categories/category.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Report]), OrdersModule, AWSModule, ComplaintModule, UserModule, PermissionModule],
+  imports: [TypeOrmModule.forFeature([Report]), OrdersModule, AWSModule, ComplaintModule, UserModule, PermissionModule, ProductModule, CategoryModule],
   providers: [ReportService, ReportRepository, ExcelExportService],
   controllers: [ReportController],
   exports: [ReportService, ReportRepository, ExcelExportService],

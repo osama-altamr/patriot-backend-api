@@ -1,6 +1,6 @@
 import { CreateOrderDto } from "../dto/create-order.dto";
 import { BaseValidationPipe } from '@Package/api';
-import { OrderPriority, OrderType } from "src/database/entities/order.entity";
+import { OrderPriority, OrderStatus, OrderType } from "src/database/entities/order.entity";
 import { object, string, number, nativeEnum } from 'zod';
 
 export class CreateOrderValidation extends BaseValidationPipe<CreateOrderDto> {
@@ -9,6 +9,8 @@ export class CreateOrderValidation extends BaseValidationPipe<CreateOrderDto> {
             note: string().optional(),
             type: nativeEnum(OrderType).optional(),
             priority: nativeEnum(OrderPriority).optional(),
+            status: nativeEnum(OrderStatus).optional(),
+            total: number().optional().nullable(),
             address: object({
                 stateId: string(),
                 cityId: string().optional(),

@@ -9,13 +9,15 @@ export const getKeysOf = <K extends string, V>(obj: { [key in K]: V }): K[] =>
     products = 'products',
     categories = 'categories',
     orders = 'orders',
-    complaint = 'complaint',
+    complaints = 'complaints',
     materials = 'materials',
     permissions = 'permissions',
     stages = 'stages',
     reports = 'reports',
     users  = 'users',
     operations = 'operations',
+    states = 'states',
+    cities = 'cities'
   }
 
 export const permissionFeatureValues = getValuesOf(PermissionFeature)
