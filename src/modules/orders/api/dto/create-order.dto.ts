@@ -5,6 +5,7 @@ export class CreateOrderDto {
     priority: OrderPriority
     type: OrderType
     note?: string
+    total?: number
     status?: OrderStatus
     userId?: string
     driverId?: string
@@ -31,4 +32,5 @@ export class CreateOrderItemDto {
     product?: Product
     stagePattern?: StagePattern
     stagePatternId?: string
+    patternImageUrl?: string
 }

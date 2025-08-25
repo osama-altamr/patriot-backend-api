@@ -6,6 +6,7 @@ import { CreateCityDto } from '../api/dto/request/create-city.dto'
 import { UpdateCityDto } from '../api/dto/request/update-city.dto'
 import { City } from 'src/database' // Adjust path
 import { StateService } from '/states/services/state.service'
+import { GetAllCitiesDto } from '../api/dto/request/get-all.dto'
 
 @Injectable()
 export class CityService {
@@ -19,8 +20,8 @@ export class CityService {
     return this.cityRepo.create(cityData as any)
   }
 
-  async getAllCities(search?: string, stateId?: string){
-    return this.cityRepo.getAllCities(search, stateId)
+  async getAllCities(search?: string, stateId?: string, query?: GetAllCitiesDto){
+    return this.cityRepo.getAllCities(search, stateId, query)
   }
 
   async getCity(id: string): Promise<City | null> {

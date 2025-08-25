@@ -22,9 +22,11 @@ import { StateModule } from '/states/state.module'
 import { CityModule } from '/city/city.module'
 import { FavoriteModule } from '/favorites/favorite.module'
 import { StagePatternModule } from '/stage-pattern/stage-pattern.module'
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(), 
     EnvConfigModule,
     DatabaseModule,
     AuthModule,

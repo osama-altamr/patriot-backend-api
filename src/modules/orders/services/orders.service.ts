@@ -9,8 +9,6 @@ import { Pagination, QueryValue } from '@Package/api'
 import { GetAllOrdersDto } from '../api/dto/get-all.dto'
 import { NotificationService } from '/notifications/services/notification.service'
 import { UserService } from '/users/services/user.service'
-import { DataSource } from 'typeorm'
-import { OrderCodeService } from './order-code.service'
 import { OrderItemService } from './order-items.service'
 import { GlassCuttingDto } from '../api/dto/glass-cutting.dto'
 import { MaterialService } from '/materials/services/material.service'
@@ -25,12 +23,14 @@ import { OrderItemActionRepository } from '../repository/order-item-action.repos
 import * as fs from 'fs/promises';
 import { ProductService } from '/products/services/product.service'
 import { PermissionRepository } from '/permissions/repository/permission.repository'
+import { In } from 'typeorm'
 
 type PackableItem = {
     id: any;
     width: number;
     height: number;
 }
+
 export let glassCuttingData: any = {} 
 const CUTTING_RESUL_FILE_PATH = 'glassCuttingResults.json'
 @Injectable()
@@ -45,12 +45,44 @@ export class OrdersService {
         private readonly stateService: StateService,
         private readonly cityService: CityService,
         private readonly permissionRepo: PermissionRepository,
+
     ) { }
 
     async startGlassCuttingJob(inputData: GlassCuttingDto): Promise<void> {
         const material = await this.materialService.getMaterial(inputData.materialId);
-        const width = inputData.width ?? material.width;
-        const height = inputData.height ?? material.height;
+        if(material){
+            if(material.quantity <= 10 ) {
+                const admins = await this.permissionRepo.getAllWithPop({
+                    accessType: In(['admin', 'employee'])
+                    })
+            if(admins && admins.length > 0){
+                await Promise.all(admins.map(async admin => {
+                  if(admin.scopes.some(scope => scope.feature === 'materials')) {
+                     await this.notificationService.createNotification({
+                        title: {
+                            en: 'Low Stock Alert!',
+                            ar: 'تنبيه انخفاض المخزون!'
+                        },
+                        content: {
+                            en: `The quantity for material "${material.name.en}" has dropped to ${material.quantity}. Please reorder soon.`,
+                            ar: `انخفضت كمية المادة "${material.name.ar}" إلى ${material.quantity}. يرجى إعادة الطلب قريباً.`
+                        },
+                      isSeen: false,
+                      recordId: material.id,
+                      type: 'material',
+                      userId: admin.user.id,
+                    });
+                  }
+                }))
+              }  
+            }
+
+            await this.materialService.updateMaterial(material.id, {
+                quantity: material.quantity - 1
+            } as any)
+        }
+        const width = inputData.width ?  inputData.width.toString() as any :material.width;
+        const height = inputData.height ?  inputData.height.toString() as any :material.height;
     
         const allItems = (await this.orderItemRepository.findAll({
             filter: {
@@ -97,318 +129,13 @@ export class OrdersService {
           console.log(`Worker exited with code ${code}.`);
         });
         
-        console.log(`Offloading job to worker with ${packableItems.length} items.`);
         worker.postMessage({ 
-            width, 
-            height, 
+            width,
+            height,
             packableItems,
             originalMaterialId: inputData.materialId
         })
       }
-
-    private crossover(
-        parent1: PackableItem[], 
-        parent2: PackableItem[],
-        materialWidth: number,
-        materialHeight: number
-    ): PackableItem[] {
-        // أخذ 30% من العناصر من الأب الأول (على الأقل عنصر واحد)
-        const segmentSize = Math.max(1, Math.floor(parent1.length * 0.3));
-        const start = Math.floor(Math.random() * (parent1.length - segmentSize));
-        const childPart = parent1.slice(start, start + segmentSize);
-        
-        // إنشاء مجموعة من المعرفات المحددة
-        const selectedIds = new Set(childPart.map(item => item.id));
-        
-        // أخذ العناصر المتبقية من الأب الثاني مع احتمال التدوير
-        const remainingFromParent2 = parent2
-            .filter(item => !selectedIds.has(item.id))
-            .map(item => {
-                const shouldRotate = Math.random() > 0.5 && 
-                                  item.height <= materialWidth && 
-                                  item.width <= materialHeight;
-                return shouldRotate 
-                    ? { ...item, width: item.height, height: item.width }
-                    : item;
-            });
-        
-        // دمج النتائج مع التحقق من التكرار
-        const result = [...childPart, ...remainingFromParent2];
-        const uniqueIds = new Set(result.map(item => item.id));
-        
-        if (uniqueIds.size !== result.length) {
-            console.warn('تم اكتشاف معرفات مكررة بعد التهجين');
-            return result.filter((item, index, self) =>
-                index === self.findIndex(i => i.id === item.id)
-            );
-        }
-        
-        return result;
-    }
-    
-    private shuffleWithPriority(items: PackableItem[]): PackableItem[] {
-        // ترتيب العناصر الكبيرة أولاً، ثم خلط ضمن مجموعات الحجم
-        return [...items]
-            .sort((a, b) => (b.width * b.height) - (a.width * a.height))
-            .map((item, i, arr) => 
-                i > 0 && Math.random() > 0.7 && 
-                (arr[i-1].width * arr[i-1].height) === (item.width * item.height)
-                    ? [arr[i], arr[i-1]]
-                    : [item, arr[i-1]]
-            )
-            .flat()
-            .filter(Boolean);
-    }
-    
-    async glassCutting(inputData: GlassCuttingDto): Promise<any> {
-        const material = await this.materialService.getMaterial(inputData.materialId);
-        const width = inputData.width ?? material.width;
-        const height = inputData.height ?? material.height;
-    
-        console.log(`عملية القطع الأمثل على مادة مقاس ${width}x${height}`);
-    
-        const allItems = (await this.orderItemRepository.findAll({})).map(item => ({
-            id: item.id,
-            width: item.width,
-            height: item.height,
-        }));
-        
-        const packableItems = allItems.filter(item => 
-            (item.width <= width && item.height <= height) || 
-            (item.height <= width && item.width <= height)
-        );
-    
-        if (packableItems.length === 0) {
-            return {
-                materialDimensions: { width, height },
-                packedItems: [],
-                unpackedItems: allItems,
-                utilization: 0,
-            };
-        }
-        
-        const config = {
-            iterations: 7000,
-            populationSize: 1000, 
-            mutationChance: 0.4,
-            crossoverChance: 0.85,
-            fittestAlwaysSurvives: true,
-            eliteCount: 5
-        };
-        
-        let population: PackableItem[][] = [];
-        for (let i = 0; i < config.populationSize; i++) {
-            const individual = packableItems.map(item => {
-                const shouldRotate = item.height > item.width && 
-                                   item.width <= height && 
-                                   item.height <= width;
-                return shouldRotate 
-                    ? { ...item, width: item.height, height: item.width } 
-                    : item;
-            });
-            
-            population.push(this.shuffleWithPriority(individual));
-        }
-    
-        const calculateFitness = (chromosome: PackableItem[]) => {
-            const uniqueItems = chromosome.filter((item, index, self) =>
-                index === self.findIndex(i => i.id === item.id)
-            );
-            
-            if (uniqueItems.length !== chromosome.length) {
-                return -Infinity; // عقوبة شديدة للعناصر المكررة
-            }
-    
-            const packer = new MaxRectsPacker(width, height, 1, {
-                smart: true,
-                pot: true,
-                square: false
-            });
-            
-            // ترتيب حسب المساحة تنازلياً لتحسين التعبئة
-            const sorted = [...chromosome].sort((a, b) => 
-                (b.width * b.height) - (a.width * a.height));
-            
-            const rectangles = sorted.map(item => {
-                const rect = new Rectangle(item.width, item.height);
-                rect.data = item;
-                return rect;
-            });
-            
-            packer.addArray(rectangles);
-            
-            if (!packer.bins[0]) return 0;
-            
-            let packedArea = 0;
-            let outOfBounds = false;
-            let wastedSpace = 0;
-            let usableGaps = 0;
-            const binArea = width * height;
-        
-    
-            packer.bins[0].rects.forEach(rect => {
-                // التحقق من الحدود
-                if (rect.x + rect.width > width || rect.y + rect.height > height) {
-                    outOfBounds = true;
-                    return;
-                }
-                
-                packedArea += rect.area();
-                
-                // حساب الفراغات القابلة للاستخدام
-                const rightSpace = width - (rect.x + rect.width);
-                const bottomSpace = height - (rect.y + rect.height);
-                
-                if (rightSpace >= 20) usableGaps++;
-                if (bottomSpace >= 19) usableGaps++;
-            });
-        
-            // حساب المساحة المهدرة
-            wastedSpace = binArea - packedArea;
-            
-            wastedSpace = binArea - packedArea - (usableGaps * 20 * 19 * 0.5);
-    
-            // معاملات العقاب والمكافأة
-            const outOfBoundsPenalty = outOfBounds ? 0.5 : 1;
-            const gapBonus = 1 + (usableGaps * 0.05);
-            
-            return (packedArea / binArea) * outOfBoundsPenalty * gapBonus - (wastedSpace / binArea);
-        };
-    
-        // دالة التحول
-        const mutate = (chromosome: PackableItem[]) => {
-            const mutated = [...chromosome];
-            
-            if (Math.random() < config.mutationChance) {
-                // تبديل عنصرين عشوائيين
-                const i1 = Math.floor(Math.random() * mutated.length);
-                const i2 = Math.floor(Math.random() * mutated.length);
-                [mutated[i1], mutated[i2]] = [mutated[i2], mutated[i1]];
-                
-                // تدوير عنصر عشوائي
-                if (Math.random() < 0.5) {
-                    const idx = Math.floor(Math.random() * mutated.length);
-                    const item = mutated[idx];
-                    if (item.height <= width && item.width <= height) {
-                        mutated[idx] = { ...item, width: item.height, height: item.width };
-                    }
-                }
-                
-                // نقل العناصر الكبيرة إلى المقدمة
-                if (Math.random() < 0.3) {
-                    const largeItems = mutated
-                        .map((item, index) => ({index, area: item.width * item.height}))
-                        .sort((a, b) => b.area - a.area);
-                    
-                    if (largeItems.length > 0) {
-                        const [largeItem] = largeItems;
-                        const [item] = mutated.splice(largeItem.index, 1);
-                        mutated.unshift(item);
-                    }
-                }
-            }
-            
-            return mutated;
-        };
-        
-        // الحلقة التطورية
-        let bestSolution: PackableItem[] = [];
-        let bestFitness = -Infinity;
-        let stagnationCount = 0;
-    
-        for (let gen = 0; gen < config.iterations; gen++) {
-            // تقييم المجتمع
-            const scored = population.map(chromosome => ({
-                entity: chromosome,
-                fitness: calculateFitness(chromosome)
-            })).sort((a, b) => b.fitness - a.fitness);
-    
-            // التحقق من أفضل حل جديد
-            if (scored[0].fitness > bestFitness) {
-                bestFitness = scored[0].fitness;
-                bestSolution = scored[0].entity;
-                stagnationCount = 0;
-            } else {
-                stagnationCount++;
-            }
-    
-            // خروج مبكر إذا لم يكن هناك تحسن
-            if (stagnationCount > 50) break;
-    
-            // إنشاء جيل جديد
-            const newPopulation: PackableItem[][] = [];
-            
-            // الاحتفاظ بالنخبة
-            if (config.fittestAlwaysSurvives) {
-                newPopulation.push(...scored.slice(0, config.eliteCount).map(s => s.entity));
-            }
-    
-            // ملء بقية المجتمع
-            while (newPopulation.length < config.populationSize) {
-                let child: PackableItem[];
-                
-                if (Math.random() < config.crossoverChance) {
-                    const parent1 = Select1.Tournament2.call(
-                        { optimize: Genetic.Optimize.Maximize }, scored);
-                    const parent2 = Select1.Tournament2.call(
-                        { optimize: Genetic.Optimize.Maximize }, scored);
-                    child = this.crossover(parent1, parent2, width, height);
-                } else {
-                    child = Select1.Tournament2.call(
-                        { optimize: Genetic.Optimize.Maximize }, scored);
-                }
-                
-                newPopulation.push(mutate(child));
-            }
-            
-            population = newPopulation;
-        }
-    
-        // التعبئة النهائية مع أفضل حل
-        const finalPacker = new MaxRectsPacker(width, height, 1, {
-            smart: true,
-            pot: true,
-            square: true
-        });
-        
-        // التأكد من عدم وجود تكرار في الحل النهائي
-        const uniqueBestSolution = bestSolution.filter((item, index, self) =>
-            index === self.findIndex(i => i.id === item.id)
-        );
-        
-        finalPacker.addArray(uniqueBestSolution.map(item => {
-            const rect = new Rectangle(item.width, item.height);
-            rect.data = item;
-            return rect;
-        }));
-    
-        // إعداد النتائج النهائية
-        const packedItems = finalPacker.bins[0]?.rects
-            .filter(rect => 
-                rect.x + rect.width <= width && 
-                rect.y + rect.height <= height)
-            .map(rect => ({
-                id: rect.data.id,
-                width: rect.width,
-                height: rect.height,
-                x: rect.x,
-                y: rect.y,
-            })) || [];
-    
-        const packedArea = packedItems.reduce((sum, item) => 
-            sum + (item.width * item.height), 0);
-        
-        const packedIds = new Set(packedItems.map(p => p.id));
-        const unpackedItems = packableItems.filter(item => !packedIds.has(item.id));
-    
-         glassCuttingData = {
-            materialDimensions: { width, height },
-            packedItems,
-            unpackedItems,
-            utilization: packedArea / (width * height),
-        };
-        return glassCuttingData
-    }
 
     async create(createOrderDto: CreateOrderDto): Promise<Order> {
         const random4Digit = Math.floor(1000 + Math.random() * 9000); 
@@ -419,7 +146,6 @@ export class OrdersService {
             ref: newRef,
             user,
         } as any) as Order
-
         await this.notificationService.createNotification({
             title: {
                 en: `New Order #${order.ref }`,
@@ -431,6 +157,7 @@ export class OrdersService {
               },
             recordId: order.id,
             type: 'order',
+            isSeen: false,
             userId: user.id,
             user: user,
         })
@@ -454,6 +181,7 @@ export class OrdersService {
                     ar: `يحتوي الطلب #${order.ref} على عناصر مخصصة تتطلب تحديد السعر.`
                 },
                 recordId: order.id,
+                isSeen: false,
                 type: 'order',
                 userId: admin.user.id,
             });
@@ -466,6 +194,33 @@ export class OrdersService {
         if(order.address && order.address.stateId) {
             order.address.state = await this.stateService.getState(order.address.stateId)
         }
+
+        const admins = await this.permissionRepo.getAllWithPop({
+            accessType: In(['admin', 'employee'])
+            })
+        
+    if(admins && admins.length > 0){
+        await Promise.all(admins.map(async admin => {
+          const orderRef = order.ref
+          if(admin.scopes.some(scope => scope.feature === 'orders')) {
+             await this.notificationService.createNotification({
+                title: {
+                    en: `New Order Received: #${orderRef}`,
+                    ar: `تم استلام طلب جديد: #${orderRef}`
+                },
+                content: {
+                    en: `A new order has been placed by ${user.name}. Please review and process it.`,
+                    ar: `تم تقديم طلب جديد من قبل ${user.name}. يرجى مراجعته وتجهيزه.`
+                },
+              isSeen: false,
+             
+              recordId: order.id,
+              type: 'order',
+              userId: admin.user.id,
+            });
+          }
+        }))
+      }    
         return await this.ordersRepository.findOneById(order.id)
     }
 
@@ -502,6 +257,36 @@ export class OrdersService {
                 updateOrderDto.status = OrderStatus.outForDelivery
                 updateOrderDto.outForDeliveryAt = new Date()
             }
+            this.notificationService.createNotification({
+                title: {
+                    en: "New Delivery Assignment",
+                    ar: "مهمة توصيل جديدة"
+                },
+                content: {
+                    en: `You have been assigned to deliver order #${order.ref}. Please check your delivery details.`,
+                    ar: `تم تعيينك لتوصيل الطلب رقم ${order.ref}. يرجى مراجعة تفاصيل التوصيل.`
+                },
+                type: 'order',
+                recordId: order.id,
+                isSeen: false,
+                userId: updateOrderDto.driverId,
+            })
+    
+            this.notificationService.createNotification({
+                title: {
+                    en: "Order Status Update",
+                    ar: "تحديث حالة الطلب"
+                },
+                content: {
+                    en: `Your order #${order.ref} is out for delivery and has been assigned to a driver.`,
+                    ar: `طلبك رقم ${order.ref} في طريق التوصيل وتم تعيين سائق له.`
+                },
+                type: 'order',
+                recordId: order.id,
+                isSeen: false,
+                userId: order.user.id,
+            });
+
             delete updateOrderDto.driverId;
         }
         if(updateOrderDto.status === OrderStatus.delivered){
@@ -519,7 +304,7 @@ export class OrdersService {
 
     async remove(id: string): Promise<void> {
         await this.findOne(id)
-        await this.ordersRepository.delete(id)
+        await this.ordersRepository.removeWithAllRelations(id)
     }
 
     async getOrderItems(orderId: string, currentStageId: string): Promise<OrderItem[]> {
@@ -566,4 +351,5 @@ export class OrdersService {
         const filePath = path.join(process.cwd(), 'glassCuttingResults.json');
         await fs.writeFile(filePath, JSON.stringify({}, null, 2));
     }
+    
 } 

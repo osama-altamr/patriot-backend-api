@@ -7,6 +7,9 @@ import { CategoryRepository } from '/categories/repository/category.repository'
 import { ProductReviewService } from '/product-reviews/services/product-review.service'
 import { StageRepository } from '/stages/repository/stage.repository'
 import { In } from 'typeorm'
+import { NotificationService } from '/notifications/services/notification.service'
+import { UserRepository } from '/users/repository/user.repository'
+import { UserRole } from '/users/api/enums/user.enum'
 
 @Injectable()
 export class ProductService {
@@ -14,7 +17,9 @@ export class ProductService {
     private readonly productRepo: ProductRepository,
     private readonly categoryRepo: CategoryRepository,
     private readonly productReviewService: ProductReviewService,
-    private readonly StageRepo: StageRepository
+    private readonly StageRepo: StageRepository,
+    private readonly notificationService: NotificationService,
+    private readonly userRepo: UserRepository,
     ) {}
 
   async createProduct(productData: CreateProductDto): Promise<Product | Product[]> {
@@ -29,8 +34,31 @@ export class ProductService {
     product.stages = await this.StageRepo.findBy({
       id: In( productData.stageIds)
     })
+
     Logger.debug({ st: product.stages })
-    return await this.productRepo.create(product)
+    const savedProduct = await this.productRepo.create(product) as Product
+    const users = await this.userRepo.findBy({
+      role: UserRole.user
+    })
+
+    if(users && users.length > 0) {
+      await Promise.all(users.map(async user => {
+        await this.notificationService.createNotification({
+          title: {
+            en: 'New Product Available!',
+            ar: 'منتج جديد متوفر!'
+        },
+        content: {
+            en: `Check out the new product: ${product.name.en}`,
+            ar: `تفقد المنتج الجديد: ${product.name.ar}`
+        },
+              type: 'product',
+              recordId: savedProduct.id,
+              userId: user.id,
+        })
+      }))
+    }
+    return savedProduct
   }
 
   async getAllProducts(categoryId: string): Promise<Product[]> {

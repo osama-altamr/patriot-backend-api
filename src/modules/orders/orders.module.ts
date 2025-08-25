@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { forwardRef, Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { Order } from '../../database/entities/order.entity'
 import { OrderItem } from '../../database/entities/order-item.entity'
@@ -23,19 +23,25 @@ import { PermissionModule } from '/permissions/permission.module'
 import { StateModule } from '/states/state.module'
 import { CityModule } from '/city/city.module'
 import { StagePatternModule } from '/stage-pattern/stage-pattern.module'
+import { TaskSchedulingService } from './services/task-scheduling.service'
+import { ScheduleModule } from '@nestjs/schedule'
 
 @Module({
     imports: [
-    MailerModule,
-    TypeOrmModule.forFeature([Order, OrderItem, OrderCode, OrderItemAction]),
-    ProductModule, NotificationModule, UserModule, StageModule, MaterialModule, CategoryModule, PermissionModule, 
-    StateModule, CityModule,ProductModule,
+   TypeOrmModule.forFeature([Order, OrderItem, OrderCode, OrderItemAction]),
+   forwardRef(() => ProductModule),
+   forwardRef(() => CategoryModule),
+   UserModule,
+   MailerModule,
+    NotificationModule,
     PermissionModule,
-    UserModule,
+      UserModule, StageModule, MaterialModule, PermissionModule, 
+    StateModule, CityModule,
+    
     StagePatternModule
 ],
     controllers: [OrdersController],
-    providers: [OrdersService, OrderCodeService, OrdersRepository, OrderItemService, OrderItemActionRepository, OrderItemRepository, OrderCodeRepository, QrcodeService],
-    exports: [ OrdersService, OrdersRepository, OrderCodeRepository, OrderItemActionRepository]
+    providers: [OrdersService, OrderCodeService, OrdersRepository, OrderItemService, OrderItemActionRepository, OrderItemRepository, OrderCodeRepository, QrcodeService, TaskSchedulingService,],
+    exports: [ OrdersService, OrdersRepository, OrderItemRepository, OrderCodeRepository, OrderItemActionRepository]
 })
 export class OrdersModule { } 

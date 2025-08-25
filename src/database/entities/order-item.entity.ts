@@ -74,6 +74,10 @@ export class OrderItem extends CommonEntity {
     @Column({ type: 'decimal', nullable: true })
     price: number
 
+
+    @Column({ type: 'varchar', nullable: true })
+    patternImageUrl: string
+
     @OneToMany(() => OrderItemAction, (orderItemAction) => orderItemAction.orderItem)
     orderItemActions: OrderItemAction[]
 }

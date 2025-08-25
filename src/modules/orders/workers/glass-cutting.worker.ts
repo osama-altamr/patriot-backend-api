@@ -60,8 +60,15 @@ function shuffleWithPriority(items: PackableItem[]): PackableItem[] {
 }
 
 function runGlassCuttingAlgorithm(width: number, height: number, packableItems: PackableItem[]): any {
-    const config = { iterations: 3000, populationSize: 500, mutationChance: 0.4, crossoverChance: 0.85, fittestAlwaysSurvives: true, eliteCount: 5 };
+    let materialWidth = width;
+    let materialHeight = height;
     
+    if (materialHeight > materialWidth) {
+        [materialWidth, materialHeight] = [materialHeight, materialWidth];
+    }
+
+    const config = { iterations: 3000, populationSize: 500, mutationChance: 0.4, crossoverChance: 0.85, fittestAlwaysSurvives: true, eliteCount: 5 };
+
    let population: PackableItem[][] = [];
            for (let i = 0; i < config.populationSize; i++) {
                const individual = packableItems.map(item => {

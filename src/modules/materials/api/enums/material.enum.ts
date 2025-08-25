@@ -7,6 +7,7 @@ export const getKeysOf = <K extends string, V>(obj: { [key in K]: V }): K[] =>
 
   export enum MaterialType {
     glass = "glass",
+    consumable = 'consumable'
   }
 
 export const materialTypeValues = getValuesOf(MaterialType)
@@ -15,7 +16,10 @@ export enum MaterialGlassType {
   float = 'float',
   tempered = 'tempered',
   laminated = 'laminated',
-  annealed = 'annealed'
+  annealed = 'annealed',
+  frosted = 'frosted',
+  mirror = 'mirror',
+  lowIron = 'low-iron'
 }
 
 export const MaterialGlassTypeValues = getValuesOf(MaterialGlassType)
