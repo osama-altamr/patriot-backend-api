@@ -10,6 +10,9 @@ import { In } from 'typeorm'
 import { NotificationService } from '/notifications/services/notification.service'
 import { UserRepository } from '/users/repository/user.repository'
 import { UserRole } from '/users/api/enums/user.enum'
+import { QueryValue } from '@Package/api'
+import { Pagination } from '@Package/api'
+import { GetAllProductsDto } from '../api/dto/request/get-all.dto'
 
 @Injectable()
 export class ProductService {
@@ -61,15 +64,15 @@ export class ProductService {
     return savedProduct
   }
 
-  async getAllProducts(categoryId: string): Promise<Product[]> {
-    const products = await this.productRepo.findAllWithPop(categoryId)
-    const updatedProducts = await Promise.all( products.map(async product => {
+  async getAllProducts(query: QueryValue<GetAllProductsDto>, pagination: Pagination) {
+    const products = await this.productRepo.getAllWithTotal(query, pagination)
+    products.results = await Promise.all( products.results.map(async product => {
       const productStats = await this.productReviewService.getProductRatingStats(product.id)
       product.ratingsQuantity =productStats.ratingsQuantity
       product.ratingsAverage = productStats.ratingsAverage
       return product
     }))
-    return updatedProducts
+    return products
   }
 
   async getReviews(productId: string) {

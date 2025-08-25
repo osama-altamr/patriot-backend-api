@@ -8,6 +8,7 @@ export class Pagination {
 export class PaginationRequest {
   page: number;
   take: number;
+  limit?: number
   needPagination: boolean = false;
 }
 

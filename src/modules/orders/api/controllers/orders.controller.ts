@@ -121,11 +121,7 @@ export class OrdersController {
     @Query() query: GetAllOrdersDto
   ){
     const q = parseQuery(query)
-    const data = await this.ordersService.findAll(q.myQuery, q.pagination)
-    return {
-      results: data,
-      total: data.length,
-    }
+    return await this.ordersService.findAll(q.myQuery, q.pagination)
   }
 
   @Get(':id')

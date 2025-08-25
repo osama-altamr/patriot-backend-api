@@ -24,6 +24,7 @@ import * as fs from 'fs/promises';
 import { ProductService } from '/products/services/product.service'
 import { PermissionRepository } from '/permissions/repository/permission.repository'
 import { In } from 'typeorm'
+import { PermissionAccessType } from '/permissions/api/enums/permission.enum'
 
 type PackableItem = {
     id: any;
@@ -168,7 +169,7 @@ export class OrdersService {
        
         if (hasCustomItems) {
             const adminsToNotify = await this.permissionRepo.getAllWithPop({
-            accessType: 'admin' 
+                accessType: In([PermissionAccessType.admin,PermissionAccessType.owner])
             })
            await Promise.all(adminsToNotify.map(async admin => {
             await this.notificationService.createNotification({
@@ -224,8 +225,8 @@ export class OrdersService {
         return await this.ordersRepository.findOneById(order.id)
     }
 
-    async findAll(query: QueryValue<GetAllOrdersDto>, pagination: Pagination): Promise<Order[]> {
-        return await this.ordersRepository.findAllForUser(query, pagination)
+    async findAll(query: QueryValue<GetAllOrdersDto>, pagination: Pagination) {
+        return await this.ordersRepository.getAllAndCount(query, pagination)
     }
 
     async findOne(id: string): Promise<Order> {

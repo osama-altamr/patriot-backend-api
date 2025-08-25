@@ -53,7 +53,7 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
         material= await this.materialRepo.findOneById(orderItemData.materialId)
     }
     if(orderItemData.stagePatternId){
-        stagePattern = await this.stagePatternRepo.findOneById(orderItemData.materialId)
+        stagePattern = await this.stagePatternRepo.findOneById(orderItemData.stagePatternId)
     }
     let stages = product.stages
     let finalPrice
@@ -96,7 +96,7 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
         throw new NotFoundException('Order item not found');
     }
 
-    console.log(orderItem)
+    console.log(orderItemData)
     if (orderItemData.currentStageId !== undefined) {
         if (orderItemData.currentStageId === null) {
             orderItemData.currentStage = null;
@@ -149,11 +149,11 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
     }
     Logger.debug({ orderItemData },'Afterrrrrrrrrrrrr')
     const updatedItem = await this.orderItemRepository.update(orderItem.id, orderItemData)
-    await this.checkCompletedOrder(orderItem.order.id)
+    await this.checkCompletedOrder(orderItem.order.id, orderItemData)
     return updatedItem
     }
 
-    async checkCompletedOrder(orderId: string) {
+    async checkCompletedOrder(orderId: string, reqData?: UpdateOrderItemDto) {
        const order =  await this.ordersRepository.findOneById(orderId)
        const completedItems = order.items.filter(item => item.status === OrderItemStatus.completed)
        if(order.items.length === completedItems.length){
@@ -210,9 +210,11 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
         user: order.user,
       })
        } else {
-        await this.ordersRepository.update(orderId, {
-            status: OrderStatus.inProgress,
-        })
+        if(reqData.currentStage) {
+            await this.ordersRepository.update(orderId, {
+                status: OrderStatus.inProgress,
+            })
+        }
        }
     }
 
@@ -240,6 +242,7 @@ async createOrderItem(orderId: string, orderItemData: CreateOrderItemDto): Promi
             orderItem: { id: orderItem.id },
             stage: { id: orderItem.currentStage.id },
           })
+          console.log('DOneeeeeeeeeeeeeeee')
        return  await this.orderItemActionRepository.update(currentAction.id, {
            endsAt: new Date()
        })

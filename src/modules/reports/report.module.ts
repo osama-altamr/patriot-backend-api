@@ -12,10 +12,11 @@ import { UserModule } from '/users/user.module';
 import { PermissionModule } from '/permissions/permission.module';
 import { ProductModule } from '/products/product.module';
 import { CategoryModule } from '/categories/category.module';
+import { GetAllReportsValidation } from './api/validation/get-all.pipe';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Report]), OrdersModule, AWSModule, ComplaintModule, UserModule, PermissionModule, ProductModule, CategoryModule],
-  providers: [ReportService, ReportRepository, ExcelExportService],
+  providers: [ReportService, ReportRepository, ExcelExportService, GetAllReportsValidation],
   controllers: [ReportController],
   exports: [ReportService, ReportRepository, ExcelExportService],
 })

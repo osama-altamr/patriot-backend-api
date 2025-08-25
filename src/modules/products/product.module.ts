@@ -10,10 +10,11 @@ import { StageModule } from '/stages/stage.module';
 import { UserModule } from '/users/user.module';
 import { NotificationModule } from '/notifications/notification.module';
 import { OrdersModule } from '/orders/orders.module';
+import { GetAllProductsValidation } from './api/validation/get-all.pipe';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Product]), forwardRef(() => OrdersModule), CategoryModule, ProductReviewModule, StageModule,UserModule, NotificationModule],
-  providers: [ProductService, ProductRepository],
+  providers: [ProductService, ProductRepository, GetAllProductsValidation],
   controllers: [ProductController],
   exports: [ProductService, ProductRepository],
 })

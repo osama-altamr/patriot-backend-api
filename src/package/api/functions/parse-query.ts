@@ -7,8 +7,9 @@ import {
 
 
 export function parseQuery<T extends PaginationRequest>(query: T ): { pagination:Pagination, myQuery:ExcludeQuery<T> } {
-  query.take = query.take ?? 10
+  query.take = query.limit ?? 10
   query.page = query.page ?? 0
+  console.log(query)
   let myQuery: ExcludeQuery<T> = {} as ExcludeQuery<T>;
   Object.keys(query).forEach((key: string) => {
     if (!paginationKeys.includes(key)) {

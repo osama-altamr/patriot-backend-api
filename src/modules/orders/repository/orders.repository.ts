@@ -88,6 +88,52 @@ export class OrdersRepository extends BaseRepository<Order> {
           console.log('Executing SQL:', queryBuilder.getSql())
           return await queryBuilder.getMany();
     }
+
+    async getAllAndCount(query: QueryValue<GetAllOrdersDto>, pagination: Pagination){
+      const queryBuilder = this.orderRepository.createQueryBuilder('order');
+      queryBuilder.leftJoinAndSelect('order.user', 'user');
+      queryBuilder.leftJoinAndSelect('order.driver', 'driver');
+      queryBuilder.leftJoinAndSelect('order.items', 'items');
+      queryBuilder.leftJoinAndSelect('items.product', 'product');
+      queryBuilder.leftJoinAndSelect('items.category', 'category');
+      queryBuilder.leftJoinAndSelect('items.currentStage', 'currentStage');
+      queryBuilder.leftJoinAndSelect('items.stages', 'stages');
+      queryBuilder.leftJoinAndSelect('items.material', 'material');
+      queryBuilder.leftJoinAndSelect('items.stagePattern', 'stagePattern');
+
+      if (query.status) {
+          queryBuilder.andWhere('order.status = :status', { status: query.status });
+      }
+
+      if (query.driverId) {
+        queryBuilder.andWhere('driver.id = :driverId', { driverId: query.driverId });
+      }
+
+      if (query.priority) {
+          queryBuilder.andWhere('order.priority = :priority', { priority: query.priority });
+      }
+      
+      if (query.startDate) {
+          queryBuilder.andWhere('order.createdAt >= :startDate', { startDate: query.startDate });
+        }
+    
+        if (query.endDate) {
+          queryBuilder.andWhere('order.createdAt <= :endDate', { endDate: query.endDate });
+        }
+
+        queryBuilder.orderBy('order.createdAt', 'DESC');
+        queryBuilder.addOrderBy('stages.order', 'ASC');
+
+        const [results, total] = await queryBuilder
+          .skip(pagination.skip)
+          .take(pagination.take)
+          .getManyAndCount();
+        
+        return {
+            results,
+            total
+        };
+  }
     async findOneById(id: string): Promise<Order> {
         return await this.orderRepository.findOne({
             where: { id },

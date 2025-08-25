@@ -6,6 +6,9 @@ import {  } from '../../../database';
 import { LocalizedString } from '@Package/api';
 import { OrderItemRepository } from '/orders/repository/order-item.repository';
 import { randomUUID } from 'crypto';
+import { QueryValue } from '@Package/api';
+import { GetAllCategoriesDto } from '../api/dto/request/get-all.dto';
+import { Pagination } from '@Package/api';
 
 @Injectable()
 export class CategoryRepository extends BaseRepository<Category> {
@@ -17,14 +20,14 @@ export class CategoryRepository extends BaseRepository<Category> {
   ) {
     super(repository);
   }
-      async getAllCategories(search?: string) {
+      async getAllCategories(query: QueryValue<GetAllCategoriesDto>, pagination: Pagination) {
         const queryBuilder = this.repository.createQueryBuilder('category');
-        if (search) {
-            const searchTerm = `%${search}%`;
+        if (query.search) {
+            const searchTerm = `%${query.search}%`;
             queryBuilder.where(
               `(LOWER(category.name->>'en') LIKE LOWER(:search) OR LOWER(category.name->>'ar') LIKE LOWER(:search))`,
               { search: searchTerm }
-            );
+            ).skip(pagination.skip).take(pagination.take);
         }
         const [data, total] = await queryBuilder.getManyAndCount();
     

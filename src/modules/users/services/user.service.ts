@@ -14,6 +14,9 @@ import { CityService } from '/city/services/city.service';
 import { PermissionRepository } from '/permissions/repository/permission.repository';
 import { UserRole } from '../api/enums/user.enum';
 import { NotificationService } from '/notifications/services/notification.service';
+import { Pagination, QueryValue } from '@Package/api';
+import { GetAllUsersDto } from '../api/dto/request/get-all.dto';
+import { Knex } from 'knex';
 
 @Injectable()
 export class UserService {
@@ -32,8 +35,8 @@ export class UserService {
     return addSeconds(issuedAt, +this.environmentService.get('jwt.jwtExpiredRefresh'))
   }
   
-  async getAllUsers(search?: string, role?: UserRole){
-    let users = await this.userRepo.getAllUsers(search, role)
+  async getAllUsers(myQuery: QueryValue<GetAllUsersDto>, pagination: Pagination){
+    let users = await this.userRepo.getAllUsers(myQuery, pagination)
 
     users.results = await  Promise.all(users.results.map(async user => {
       if(user.address && user.address.cityId){
@@ -242,4 +245,10 @@ export class UserService {
       password: await HashService.hashPassword(reqData.newPassword),
     })
   }
+
+  async forceDelete (id: string) {
+    console.log(id)
+    await this.userRepo.delete(id)
+  }
+
 }

@@ -24,7 +24,7 @@ import { StateModule } from '/states/state.module'
 import { CityModule } from '/city/city.module'
 import { StagePatternModule } from '/stage-pattern/stage-pattern.module'
 import { TaskSchedulingService } from './services/task-scheduling.service'
-import { ScheduleModule } from '@nestjs/schedule'
+import { GetAllItemsValidation } from './api/validations/get-all-items.validation'
 
 @Module({
     imports: [
@@ -41,7 +41,7 @@ import { ScheduleModule } from '@nestjs/schedule'
     StagePatternModule
 ],
     controllers: [OrdersController],
-    providers: [OrdersService, OrderCodeService, OrdersRepository, OrderItemService, OrderItemActionRepository, OrderItemRepository, OrderCodeRepository, QrcodeService, TaskSchedulingService,],
+    providers: [OrdersService, OrderCodeService, OrdersRepository, OrderItemService, OrderItemActionRepository, OrderItemRepository, OrderCodeRepository, QrcodeService, TaskSchedulingService,GetAllItemsValidation],
     exports: [ OrdersService, OrdersRepository, OrderItemRepository, OrderCodeRepository, OrderItemActionRepository]
 })
 export class OrdersModule { } 

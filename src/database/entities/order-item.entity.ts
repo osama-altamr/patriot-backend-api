@@ -4,8 +4,8 @@ import { Order } from './order.entity'
 import { Category } from './category.entity'
 import { Product } from './product.entity'
 import { Stage } from './stage.entity'
-import { OrderItemAction } from './order-item-action.entity'
 import { Material } from './material.entity'
+import { OrderItemAction } from './order-item-action.entity'
 import { StagePattern } from './stage-pattern.entity'
 
 export enum OrderItemStatus {

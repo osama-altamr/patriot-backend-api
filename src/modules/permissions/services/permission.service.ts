@@ -28,7 +28,7 @@ export class PermissionService {
   }
 
   async getAllPermissions(){
-   return this.permissionRepo.getAllWithPop()
+   return this.permissionRepo.getAllAndCountWithPop()
   }
 
   async getPermission(id: string): Promise<Permission | null> {

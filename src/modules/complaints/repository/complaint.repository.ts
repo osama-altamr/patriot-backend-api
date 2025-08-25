@@ -40,7 +40,11 @@ export class ComplaintRepository extends BaseRepository<Complaint> {
   
             queryBuilder.orderBy('complaint.createdAt', 'DESC');
         
-            return await queryBuilder.getMany();
+            const [results, total]  = await queryBuilder.getManyAndCount();
+            return {
+              results,
+              total
+            }
       }
 
   async findOneByWithPop(query: object) {

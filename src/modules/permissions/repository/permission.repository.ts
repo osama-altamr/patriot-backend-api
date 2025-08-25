@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { BaseRepository, Permission } from '../../../database';
 import {  } from '../../../database';
 import { PermissionAccessType } from '../api/enums/permission.enum';
+import { Pagination } from '@Package/api';
 
 @Injectable()
 export class PermissionRepository extends BaseRepository<Permission> {
@@ -92,5 +93,27 @@ export class PermissionRepository extends BaseRepository<Permission> {
       },
       relations: ['user', 'stage',]
     })
+  }
+
+  async getAllAndCountWithPop(query?: object, pagination?: Pagination){
+    const findOptions: FindManyOptions<Permission> = {
+      where: query ?? {},
+      relations: ['user', 'stage'],
+      order: {
+        createdAt: 'DESC',
+      },
+    };
+
+    if (pagination) {
+      findOptions.skip = pagination.skip;
+      findOptions.take = pagination.take;
+    }
+
+    const [results, total] = await this.repository.findAndCount(findOptions);
+
+    return {
+      results,
+      total,
+    };
   }
 }

@@ -10,6 +10,8 @@ import { OrderItemActionRepository } from '/orders/repository/order-item-action.
 import { randomUUID } from 'crypto';
 import { ProductRepository } from '/products/repository/product.repository';
 import { CategoryRepository } from '/categories/repository/category.repository';
+import { Pagination, QueryValue } from '@Package/api';
+import { GetAllReportsDto } from '../api/dto/request/get-all.dto';
 
 @Injectable()
 export class ReportService {
@@ -140,8 +142,8 @@ export class ReportService {
     
     return await this.reportRepo.create(body)
   }
-  async getAllReports(): Promise<Report[]> {
-    return this.reportRepo.findAll({})
+  async getAllReports(query: QueryValue<GetAllReportsDto>, pagination: Pagination) {
+    return this.reportRepo.getAllReports(query, pagination)
   }
 
   async getReport(id: string) {

@@ -12,15 +12,15 @@ export class CreateOrderValidation extends BaseValidationPipe<CreateOrderDto> {
             status: nativeEnum(OrderStatus).optional(),
             total: number().optional().nullable(),
             address: object({
-                stateId: string(),
+                stateId: string().min(1, 'State ID is required'),
                 cityId: string().optional(),
-                street1: string(),
+                street1: string().min(1, 'Street address is required'),
                 street2: string().optional(),
                 postalCode: string().optional(),
                 apartment: string().optional(),
                 complex: string().optional(),
                }),
-            items:  object({
+            items: object({
                 note: string().optional(),
                 productId: string().optional(),
                 width: number(),

@@ -49,8 +49,8 @@ export class HomeService {
         complaints: totalComplaints,
         orders: totalOrders,
         categories: totalCategories,
-        reports: totalStages,
-        stages: totalReports
+        reports: totalReports,
+        stages:  totalStages 
     }
     }
   }

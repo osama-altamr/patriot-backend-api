@@ -18,11 +18,7 @@ export class PermissionController {
 
     @Get()
     async getAll(){
-    const data = await this.permissionService.getAllPermissions();
-    return {
-        total: data.length,
-        results: data
-    }
+      return await this.permissionService.getAllPermissions();
     }
 
 

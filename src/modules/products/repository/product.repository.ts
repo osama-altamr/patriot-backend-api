@@ -4,6 +4,8 @@ import { FindOptionsWhere, Repository } from 'typeorm';
 import { BaseRepository, OrderItem, OrderStatus, Product } from '../../../database';
 import { OrderItemRepository } from '/orders/repository/order-item.repository';
 import { randomUUID } from 'crypto';
+import { QueryValue, Pagination } from '@Package/api';
+import { GetAllProductsDto } from '../api/dto/request/get-all.dto';
 
 @Injectable()
 export class ProductRepository extends BaseRepository<Product> {
@@ -15,20 +17,41 @@ export class ProductRepository extends BaseRepository<Product> {
   ) {
     super(repository);
   }
-  async findAllWithPop(categoryId: string) {
-    const query: FindOptionsWhere<Product> = {}
-    if(categoryId) {
-      query.category = { id: categoryId }
+  async findAllWithPop(query: QueryValue<GetAllProductsDto>, pagination: Pagination) {
+    console.log(query)  
+    const queryBuilder: FindOptionsWhere<Product> = {}
+    console.log(query)
+    if(query.categoryId) {
+      queryBuilder.category = { id: query.categoryId }
     }
     return await this.findAll({
-    
       filter: {
-        where: query,
+        where: queryBuilder,
         relations: ['category', 'stages'],
-      }
+        skip: pagination.skip,
+        take: pagination.take,
+      },
     })
   }
 
+
+  async getAllWithTotal(query: QueryValue<GetAllProductsDto>, pagination: Pagination) {
+    const queryBuilder = this.repository.createQueryBuilder('product');
+    
+    queryBuilder.leftJoinAndSelect('product.category', 'category');
+    queryBuilder.leftJoinAndSelect('product.stages', 'stages');
+    
+    if (query.categoryId) {
+      queryBuilder.where('category.id = :categoryId', { categoryId: query.categoryId });
+    }
+    
+    queryBuilder.skip(pagination.skip);
+    queryBuilder.take(pagination.take);
+    
+    const [data, total] = await queryBuilder.getManyAndCount();
+  
+    return { results: data, total };
+  }
   async findOneByIdWithPop(id: string){
     return this.repository.findOne({ where: {id}, relations: ['category', 'stages'], } as any)
   }

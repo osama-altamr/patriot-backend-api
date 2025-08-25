@@ -1,7 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, ManyToMany, OneToMany } from 'typeorm'
 import { CommonEntity } from './common.entity'
 import { LocalizedString } from '@Package/api/interfaces/localized.interface'
-import { OrderItem } from './order-item.entity'
 import { Product } from './product.entity'
 import { StagePattern } from './stage-pattern.entity'
 

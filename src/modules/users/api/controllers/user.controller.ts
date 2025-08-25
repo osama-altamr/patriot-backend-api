@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpStatus, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { AddUserDto } from "../dto/request/add-user.dto";
 import { AddUserValidation } from "../validation/add-user.pipe";
 import { UserService } from "/users/services/user.service";
@@ -15,11 +15,16 @@ import { ResetPasswordDto } from "../dto/request/reset-password.dto";
 import { ResetPasswordValidation } from "../validation/reset-password.pipe";
 import { UpdatePasswordValidation } from "../validation/update-password.pipe";
 import { UpdatePasswordDto } from "../dto/request/update-password.dto";
+import { GetAllUsersValidation } from "../validation/get-all.pipe";
+import { GetAllUsersDto } from "../dto/request/get-all.dto";
+import { parseQuery } from "@Package/api/functions";
+import { RefreshTokenRepository } from "/refresh-tokens/repository/refresh-token.repository";
 
 @Controller("users")
 export class UserController {
     constructor(
         private readonly userService: UserService, 
+        private readonly refreshTokenRepo: RefreshTokenRepository, 
     ){}
 
     @Post()
@@ -30,8 +35,9 @@ export class UserController {
     @Get()
     // @UserRoleMetadata([UserRole.admin])
     // @UseGuards(JwtAuthGuard, UserRoleGuard)
-    async getAll(@Query('search') search?: string, @Query('role') role?: UserRole){
-      return await this.userService.getAllUsers(search, role)
+    async getAll(@Query(GetAllUsersValidation) query: GetAllUsersDto){
+        const { pagination, myQuery } = parseQuery(query)
+      return await this.userService.getAllUsers(myQuery, pagination)
     }
 
     @Get('/me')
@@ -79,4 +85,14 @@ export class UserController {
         return await this.userService.updatePassword(user.id,reqData)
     }
 
+    @Delete(':id')
+    async delete(@Param('id') id: string){
+        const refreshTokens = await this.refreshTokenRepo.findBy({
+            user: {id: id}
+        })
+        for(const rf of refreshTokens) {
+            await this.refreshTokenRepo.delete(rf.id)
+        }
+        return await this.userService.forceDelete(id)
+    }
 }

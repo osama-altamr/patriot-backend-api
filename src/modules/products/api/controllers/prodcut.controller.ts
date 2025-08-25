@@ -6,6 +6,9 @@ import { Product, ProductReview } from "src/database";
 import { CreateProductValidation } from "../validation/create-product.pipe";
 import { UpdateProductValidation } from "../validation/update-product.pipe";
 import { ProductReviewService } from "/product-reviews/services/product-review.service";
+import { GetAllProductsValidation } from "../validation/get-all.pipe";
+import { GetAllProductsDto } from "../dto/request/get-all.dto";
+import { parseQuery } from "@Package/api/functions";
 
 @Controller("products") 
 export class ProductController {
@@ -19,12 +22,10 @@ export class ProductController {
     }
 
     @Get()
-    async getAll(@Query('categoryId') categoryId?: string){
-    const data = await this.productService.getAllProducts(categoryId)
-    return {
-        total: data.length,
-        results: data
-    }
+    async getAll(@Query(GetAllProductsValidation) query: GetAllProductsDto){
+        console.log(query)
+        const {pagination, myQuery} = parseQuery(query)
+        return await this.productService.getAllProducts(myQuery, pagination)
     }
 
 
