@@ -4,6 +4,9 @@ import { MaterialError } from './material.error';
 import { CreateMaterialDto } from '../api/dto/request/create-material.dto';
 import { Material } from 'src/database';
 import { UpdateMaterialDto } from '../api/dto/request/update-material.dto';
+import { QueryValue } from '@Package/api';
+import { GetAllMaterialsDto } from '../api/dto/request/get-all.dto';
+import { Pagination } from '@Package/api';
 
 @Injectable()
 export class MaterialService {
@@ -16,8 +19,8 @@ export class MaterialService {
     console.log(body)
     return await this.materialRepo.create(body as unknown as Material)
   }
-  async getAllMaterials(searchTerm?: string) {
-    return this.materialRepo.getAllMaterials(searchTerm)
+  async getAllMaterials(query: QueryValue<GetAllMaterialsDto>, pagination: Pagination) {
+    return this.materialRepo.getAllMaterials(pagination, query.search)
   }
 
   async getMaterial(id: string): Promise<Material | null> {

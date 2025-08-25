@@ -5,6 +5,9 @@ import { CreateMaterialValidation } from "../validation/create-material.pipe";
 import { Material } from "src/database";
 import { UpdateMaterialDto } from "../dto/request/update-material.dto";
 import { UpdateMaterialValidation } from "../validation/update-material.pipe";
+import { GetAllMaterialsValidation } from "../validation/get-all.pipe";
+import { GetAllMaterialsDto } from "../dto/request/get-all.dto";
+import { parseQuery } from "@Package/api/functions";
 
 @Controller("materials")
 export class MaterialController {
@@ -18,8 +21,9 @@ export class MaterialController {
        return await this.materialService.create(data)
     }
         @Get()
-        async getAll(@Query('search') searchTerm?: string) {
-            return await this.materialService.getAllMaterials(searchTerm);
+        async getAll(@Query(GetAllMaterialsValidation) query: GetAllMaterialsDto) {
+            const {pagination, myQuery} = parseQuery(query)
+            return await this.materialService.getAllMaterials(myQuery, pagination);
         }
     
         @Get(':id')
