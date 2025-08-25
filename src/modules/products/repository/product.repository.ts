@@ -4,6 +4,8 @@ import { FindOptionsWhere, Repository } from 'typeorm';
 import { BaseRepository, OrderItem, OrderStatus, Product } from '../../../database';
 import { OrderItemRepository } from '/orders/repository/order-item.repository';
 import { randomUUID } from 'crypto';
+import { QueryValue, Pagination } from '@Package/api';
+import { GetAllProductsDto } from '../api/dto/request/get-all.dto';
 
 @Injectable()
 export class ProductRepository extends BaseRepository<Product> {
@@ -15,17 +17,18 @@ export class ProductRepository extends BaseRepository<Product> {
   ) {
     super(repository);
   }
-  async findAllWithPop(categoryId: string) {
-    const query: FindOptionsWhere<Product> = {}
-    if(categoryId) {
-      query.category = { id: categoryId }
+  async findAllWithPop(query: QueryValue<GetAllProductsDto>, pagination: Pagination) {
+    const queryBuilder: FindOptionsWhere<Product> = {}
+    if(query.categoryId) {
+      queryBuilder.category = { id: query.categoryId }
     }
     return await this.findAll({
-    
       filter: {
-        where: query,
+        where: queryBuilder,
         relations: ['category', 'stages'],
-      }
+        skip: pagination.skip,
+        take: pagination.take,
+      },
     })
   }
 

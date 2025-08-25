@@ -3,6 +3,8 @@ import { CategoryRepository } from '../repository/category.repository' // Adjust
 import { CreateCategoryDto } from '../api/dto/request/create-category.dto'
 import { UpdateCategoryDto } from '../api/dto/request/update-category.dto'
 import { Category } from 'src/database' // Adjust path
+import { Pagination, QueryValue } from '@Package/api'
+import { GetAllCategoriesDto } from '../api/dto/request/get-all.dto'
 
 @Injectable()
 export class CategoryService {
@@ -14,8 +16,8 @@ export class CategoryService {
     return this.categoryRepo.create(categoryData as any)
   }
 
-  async getAllCategories(search?: string){
-    return this.categoryRepo.getAllCategories(search)
+  async getAllCategories(query: QueryValue<GetAllCategoriesDto>, pagination: Pagination){
+    return this.categoryRepo.getAllCategories(query, pagination)
   }
 
   async getCategory(id: string): Promise<Category | null> {

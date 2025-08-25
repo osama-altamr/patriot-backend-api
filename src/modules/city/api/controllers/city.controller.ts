@@ -8,6 +8,8 @@ import { City } from "src/database"; // Adjust path
 import { CreateCityValidation } from "../validation/create-city.pipe";
 import { UpdateCityValidation } from "../validation/update-city.pipe";
 import { GetAllOrdersDto } from "/orders/api/dto/get-all.dto";
+import { GetAllCitiesValidation } from "../validation/get-all.pipe";
+import { parseQuery } from "@Package/api/functions";
 
 @Controller("cities")
 export class CityController {
@@ -20,9 +22,9 @@ export class CityController {
     }
 
     @Get()
-    async getAll(@Query('search') search?: string, @Query('stateId') stateId?: string, @Query() query?: GetAllOrdersDto){
-        
-        return await this.cityService.getAllCities(search, stateId, query);
+    async getAll(@Query(GetAllCitiesValidation) query: GetAllOrdersDto){
+        const {pagination, myQuery} = parseQuery(query)
+        return await this.cityService.getAllCities(myQuery, pagination);
     }
 
     @Get(':id')

@@ -5,6 +5,8 @@ import { StateRepository } from '../repository/state.repository' // Adjust path
 import { CreateStateDto } from '../api/dto/request/create-state.dto'
 import { UpdateStateDto } from '../api/dto/request/update-state.dto'
 import { State } from 'src/database' // Adjust path
+import { Pagination, QueryValue } from '@Package/api'
+import { GetAllStatesDto } from '../api/dto/request/get-all.dto'
 
 @Injectable()
 export class StateService {
@@ -16,8 +18,8 @@ export class StateService {
     return this.stateRepo.create(stateData as any)
   }
 
-  async getAllStates(search?: string){
-    return this.stateRepo.getAllStates(search)
+  async getAllStates(query: QueryValue<GetAllStatesDto>, pagination: Pagination){
+    return this.stateRepo.getAllStates(query, pagination)
   }
 
   async getState(id: string): Promise<State | null> {

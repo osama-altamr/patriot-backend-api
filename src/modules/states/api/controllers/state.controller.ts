@@ -5,6 +5,9 @@ import { UpdateStateDto } from "../dto/request/update-state.dto";
 import { State } from "src/database"; // Adjust path
 import { CreateStateValidation } from "../validation/create-state.pipe";
 import { UpdateStateValidation } from "../validation/update-state.pipe";
+import { GetAllStatesDto } from "../dto/request/get-all.dto";
+import { parseQuery } from "@Package/api/functions";
+import { GetAllStatesValidation } from "../validation/get-all.pipe";
 
 @Controller("states")
 export class StateController {
@@ -17,8 +20,9 @@ export class StateController {
     }
 
     @Get()
-    async getAll(@Query('search') search: string) {
-        return await this.stateService.getAllStates(search);
+    async getAll(@Query(GetAllStatesValidation) query: GetAllStatesDto) {
+        const {pagination, myQuery} = parseQuery(query)
+        return await this.stateService.getAllStates(myQuery, pagination)
     }
 
     @Get(':id')

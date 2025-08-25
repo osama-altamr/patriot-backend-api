@@ -5,11 +5,14 @@ import { UpdateCategoryDto } from "../dto/request/update-category.dto";
 import { Category } from "src/database"; // Adjust path
 import { CreateCategoryValidation } from "../validation/create-category.pipe";
 import { UpdateCategoryValidation } from "../validation/update-category.pipe";
+import { GetAllCategoriesValidation } from "../validation/get-all.pipe";
+import { GetAllCategoriesDto } from "../dto/request/get-all.dto";
+import { parseQuery } from "@Package/api/functions";
 
 @Controller("categories")
 export class CategoryController {
     constructor(private readonly categoryService: CategoryService) {}
-
+    string
     @Post()
     @HttpCode(HttpStatus.CREATED)
     async createCategory(@Body(CreateCategoryValidation) categoryData: CreateCategoryDto): Promise<Category | Category[]> {
@@ -17,8 +20,9 @@ export class CategoryController {
     }
 
     @Get()
-    async getAll(@Query('search') search?: string) {
-       return await this.categoryService.getAllCategories(search);
+    async getAll(@Query(GetAllCategoriesValidation) query: GetAllCategoriesDto) {
+        const {pagination, myQuery} = parseQuery(query)
+        return await this.categoryService.getAllCategories(myQuery, pagination);
     }
 
     
