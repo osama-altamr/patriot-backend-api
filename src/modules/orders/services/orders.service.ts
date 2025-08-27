@@ -30,6 +30,7 @@ type PackableItem = {
     id: any;
     width: number;
     height: number;
+    priority?: 'high' | 'medium' | 'low';
 }
 
 export let glassCuttingData: any = {} 
@@ -85,7 +86,7 @@ export class OrdersService {
         const width = inputData.width ?  inputData.width.toString() as any :material.width;
         const height = inputData.height ?  inputData.height.toString() as any :material.height;
     
-        const allItems = (await this.orderItemRepository.findAllWithOrder({
+        const allItems = (await this.orderItemRepository.findAll({
             filter: {
                 where: { status: OrderItemStatus.pending }
             }
@@ -93,7 +94,6 @@ export class OrdersService {
             id: item.id.toString(),
             width: item.width,
             height: item.height,
-            priority: item.order.priority,
         }));
         
         const packableItems = allItems.filter(item => 
@@ -135,7 +135,8 @@ export class OrdersService {
             width,
             height,
             packableItems,
-            originalMaterialId: inputData.materialId
+            originalMaterialId: inputData.materialId,
+
         })
       }
 
