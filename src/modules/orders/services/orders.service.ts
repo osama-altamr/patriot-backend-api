@@ -85,7 +85,7 @@ export class OrdersService {
         const width = inputData.width ?  inputData.width.toString() as any :material.width;
         const height = inputData.height ?  inputData.height.toString() as any :material.height;
     
-        const allItems = (await this.orderItemRepository.findAll({
+        const allItems = (await this.orderItemRepository.findAllWithOrder({
             filter: {
                 where: { status: OrderItemStatus.pending }
             }
@@ -93,6 +93,7 @@ export class OrdersService {
             id: item.id.toString(),
             width: item.width,
             height: item.height,
+            priority: item.order.priority,
         }));
         
         const packableItems = allItems.filter(item => 
@@ -226,7 +227,7 @@ export class OrdersService {
     }
 
     async findAll(query: QueryValue<GetAllOrdersDto>, pagination: Pagination) {
-        return await this.ordersRepository.getAllAndCount(query, pagination)
+        return await this.ordersRepository.findAllForUserAndCount(query, pagination)
     }
 
     async findOne(id: string): Promise<Order> {

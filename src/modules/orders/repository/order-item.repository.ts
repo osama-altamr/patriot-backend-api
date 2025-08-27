@@ -70,6 +70,15 @@ export class OrderItemRepository extends BaseRepository<OrderItem> {
         },
           }) 
       }
+      async  findAllWithOrder(query: object){
+        return this.repository.find({
+          where: query,
+          relations: {
+            order: true,
+          },
+          }) 
+      }
+      
       async findOneByIdWithPop(id: string): Promise<OrderItem | null> {
         if (!id) {
             return null;
