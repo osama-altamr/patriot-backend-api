@@ -6,7 +6,7 @@ import { Complaint, User } from "src/database"
 import { CreateComplaintValidation } from "../validation/create-complaint.pipe";
 import { UpdateComplaintValidation } from "../validation/update-complaint.pipe";
 import { CurrentUser } from "@Package/api";
-import { JwtAuthGuard } from "@Package/auth";
+import { JwtAuthGuard, UserPayload } from "@Package/auth";
 import { parseQuery } from "@Package/api/functions";
 import { GetAllComplaintsDto } from "../dto/request/get-all.dto";
 
@@ -48,7 +48,9 @@ export class ComplaintController {
     async update(
         @Param('id') idParam: string,
         @Body(UpdateComplaintValidation) updateData: UpdateComplaintDto,
+        @CurrentUser() user: UserPayload
     ): Promise<Complaint> {
+        updateData.closedById = user.id
         return await this.complaintService.updateComplaint(idParam, updateData);
     }
 

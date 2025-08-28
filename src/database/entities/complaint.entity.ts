@@ -19,13 +19,15 @@ export class Complaint extends CommonEntity {
   
   @Column({
     type: 'varchar',
-    nullable: true
+    nullable: true,
+    default: 'other'
   })
   type?: string
 
   @Column({
     type: 'varchar',
-    nullable: true
+    nullable: true,
+    default: '',
   })
   location?: string
 

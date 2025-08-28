@@ -9,12 +9,12 @@ export class CreateMaterialValidation extends BaseValidationPipe {
         const schema = object({
             name: localizedSchema,
             description: localizedSchema,
-            imageUrl: string().optional(),
+            imageUrl: string().optional().nullable(),
             height: number().optional(),
             width: number().optional(),
             quantity: number().optional(),
-            glassType: nativeEnum(MaterialGlassType).optional(),
-            type: nativeEnum(MaterialType),
+            glassType: nativeEnum(MaterialGlassType).nullable().optional(),
+            type: nativeEnum(MaterialType).optional().default(MaterialType.glass),
             location: string().optional(),
         })
         super(schema)

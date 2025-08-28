@@ -7,8 +7,8 @@ export class CreateComplaintValidation extends BaseValidationPipe<CreateComplain
     const schema = object({
       description: string().min(10),
       fileUrl: string().url().optional(),
-      type: string().optional(),
-      location: string().optional(),
+      type: string().optional().nullable(),
+      location: string().optional().nullable(),
       userId: string().optional(),
     })
     super(schema);

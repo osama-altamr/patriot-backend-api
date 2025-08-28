@@ -17,13 +17,13 @@ export class ReportRepository extends BaseRepository<Report> {
   async getAllReports(
     query: QueryValue<GetAllReportsDto>, 
     pagination: Pagination
-  ): Promise<{ reports: Report[]; total: number }> {
-    const [reports, total] = await this.repository.findAndCount({
+  ): Promise<{ results: Report[]; total: number }> {
+    const [results, total] = await this.repository.findAndCount({
       where: {},
       skip: pagination.skip,
       take: pagination.take,
     });
 
-    return { reports, total };
+    return { results, total };
   }
 }

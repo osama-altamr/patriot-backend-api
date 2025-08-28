@@ -242,6 +242,9 @@ export class OrdersService {
         if(order.address && order.address.stateId) {
             order.address.state = await this.stateService.getState(order.address.stateId)
         }
+        if(order.user){
+            order.userId = order.user.id
+        }
 
         order.items = await Promise.all(order.items.map(async item => {
             item.orderItemActions = await this.orderItemActionRepo.getItemActions(item.id) as any

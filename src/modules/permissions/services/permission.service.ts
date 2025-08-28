@@ -32,7 +32,7 @@ export class PermissionService {
   }
 
   async getPermission(id: string): Promise<Permission | null> {
-    const Permission = await this.permissionRepo.findOneById(id)
+    const Permission = await this.permissionRepo.findOneByWithPop({id: id})
     if (!Permission) {
         throw new NotFoundException(`Permission with ID ${id} not found`)
     }

@@ -112,8 +112,10 @@ export class ComplaintService {
         });
       }
     }
-
-
+    
+    if(updateData.closedById) {
+      delete updateData.closedById
+    }
 
     updateData.closedBy = user
     await this.complaintRepo.update(id, updateData);

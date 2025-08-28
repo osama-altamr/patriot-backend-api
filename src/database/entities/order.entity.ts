@@ -91,6 +91,8 @@ export class Order extends CommonEntity {
 
   @OneToMany(() => OrderItem, orderItem => orderItem.order)
   items: OrderItem[]
+
+  userId?: string
 }
 
 export abstract class IOrder {
