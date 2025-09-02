@@ -16,8 +16,6 @@ import { OrderItemService } from '/orders/services/order-items.service'
 import { GlassCuttingDto } from '../dto/glass-cutting.dto'
 import { UserService } from '/users/services/user.service'
 import { CreateOrderItemAction } from '../dto/create-order-item-action.dto'
-import { MaterialService } from '/materials/services/material.service'
-import { DataSource } from 'typeorm'
 
 @Controller("orders")
 export class OrdersController {
