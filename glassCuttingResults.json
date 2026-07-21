@@ -1,1 +1,144 @@
-{}
+{
+  "materialDimensions": {
+    "width": 600,
+    "height": 500
+  },
+  "packedItems": [
+    {
+      "id": "4dd30228-4bc7-4a8b-9b31-7796d69c6452",
+      "width": 220,
+      "height": 300,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "f040a04d-47fe-48f5-92fb-f6dcc4793bf5",
+      "width": 210,
+      "height": 310,
+      "x": 221,
+      "y": 0
+    },
+    {
+      "id": "9d18917e-5c2b-46dd-961a-5db00d52fb66",
+      "width": 150,
+      "height": 360,
+      "x": 432,
+      "y": 0
+    },
+    {
+      "id": "96671032-fde0-42eb-b6a5-78a89eb2878c",
+      "width": 240,
+      "height": 180,
+      "x": 0,
+      "y": 311
+    },
+    {
+      "id": "bdde9d12-bf30-43c9-8cd6-312a50b0ec1e",
+      "width": 250,
+      "height": 120,
+      "x": 241,
+      "y": 361
+    },
+    {
+      "id": "1054d355-aaf8-4bb7-acb1-f8570d04a3fb",
+      "width": 80,
+      "height": 120,
+      "x": 492,
+      "y": 361
+    }
+  ],
+  "unpackedItems": [
+    {
+      "id": "57b1a14a-4843-40d6-80ec-3369273205c5",
+      "width": 140,
+      "height": 220
+    },
+    {
+      "id": "a77a9479-d54a-4046-ba1b-0cb9bc2ff5d6",
+      "width": 140,
+      "height": 220
+    },
+    {
+      "id": "aa77106b-0918-4e57-9c9e-88e5922175a9",
+      "width": 120,
+      "height": 80
+    },
+    {
+      "id": "c75899b6-2ba2-4088-bf9b-6ef4087a28c6",
+      "width": 150,
+      "height": 120
+    },
+    {
+      "id": "26d1dacb-fc62-4769-9d20-e937a0e6bd94",
+      "width": 230,
+      "height": 125
+    },
+    {
+      "id": "a3e91310-3ce3-4296-bf1a-e7d0d0022db8",
+      "width": 200,
+      "height": 120
+    },
+    {
+      "id": "c4934083-2254-48c0-83a3-3e5a567a0313",
+      "width": 300,
+      "height": 200
+    },
+    {
+      "id": "0c7031a8-9e99-43cd-959c-1b4faad761a3",
+      "width": 140,
+      "height": 120
+    },
+    {
+      "id": "2fe69f01-121f-4f61-81fe-e305d3a30a3c",
+      "width": 160,
+      "height": 200
+    },
+    {
+      "id": "6c9761a8-92ec-4073-9e30-bf3ab3426d26",
+      "width": 140,
+      "height": 250
+    },
+    {
+      "id": "b4473fdf-aaf6-44ba-a09f-14a35bb352c4",
+      "width": 200,
+      "height": 150
+    },
+    {
+      "id": "39d60c52-2349-4ff0-96b3-b742fd83c0d4",
+      "width": 250,
+      "height": 140
+    },
+    {
+      "id": "ae6462d9-4082-41f6-bdb4-cf8a359db834",
+      "width": 220,
+      "height": 220
+    },
+    {
+      "id": "e9478a32-7e76-4d8d-b9e8-61f8f1b0eb49",
+      "width": 240,
+      "height": 160
+    },
+    {
+      "id": "cb5fd6de-f19f-4527-b9c4-23da8bb15887",
+      "width": 110,
+      "height": 150
+    },
+    {
+      "id": "814856c7-5b67-4209-b0db-c03a22baccb9",
+      "width": 240,
+      "height": 170
+    },
+    {
+      "id": "0dab1015-da22-40ed-bd39-028f7e73cc8d",
+      "width": 100,
+      "height": 140
+    },
+    {
+      "id": "5ba95945-2103-492f-8f03-d77ae5625793",
+      "width": 215,
+      "height": 125
+    }
+  ],
+  "utilization": 0.893,
+  "originalMaterialId": "e4ed0882-6a88-42d2-accb-b9203550100a"
+}

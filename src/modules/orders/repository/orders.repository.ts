@@ -360,7 +360,7 @@ export class OrdersRepository extends BaseRepository<Order> {
 
     const rawData = await queryBuilder.getRawMany();
     return rawData.map(item => ({
-      ...item,
+      ...item,  
       totalRevenue: Number(parseFloat(item.totalRevenue).toFixed(2)) || 0,
       orderCount: parseInt(item.orderCount, 10) || 0,
     }));

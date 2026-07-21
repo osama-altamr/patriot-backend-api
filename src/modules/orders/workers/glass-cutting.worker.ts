@@ -1,292 +1,477 @@
 import { parentPort } from 'worker_threads';
-import { MaxRectsPacker, Rectangle } from 'maxrects-packer';
-import  { Select1 } from 'genetic-js';
-import * as Genetic from 'genetic-js';
+import { MaxRectsPacker, Rectangle, PACKING_LOGIC } from 'maxrects-packer';
 
-interface PackableItem { id: any; width: number; height: number; }
+interface PackableItem {
+  id: any;
+  width: number;
+  height: number;
+}
 
+interface PackedItem {
+  id: any;
+  width: number;
+  height: number;
+  x: number;
+  y: number;
+  rotated?: boolean;
+}
 
-function crossover(
-    parent1: PackableItem[], 
-    parent2: PackableItem[],
-    materialWidth: number,
-    materialHeight: number
+type SortMode = 'area' | 'maxSide' | 'height' | 'width' | 'perimeter';
+
+interface PackStrategy {
+  name: string;
+  sort: SortMode;
+  allowRotation: boolean;
+  logic: PACKING_LOGIC;
+  preferOrientation?: 'landscape' | 'portrait' | 'none';
+}
+
+/** Kerf / saw gap between pieces */
+const PADDING = 1;
+
+function toNumber(value: unknown): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function fits(w: number, h: number, sheetW: number, sheetH: number): boolean {
+  return w <= sheetW && h <= sheetH;
+}
+
+function sortItems(items: PackableItem[], mode: SortMode): PackableItem[] {
+  const copy = items.map((item) => ({ ...item }));
+  switch (mode) {
+    case 'maxSide':
+      return copy.sort(
+        (a, b) =>
+          Math.max(b.width, b.height) - Math.max(a.width, a.height) ||
+          b.width * b.height - a.width * a.height,
+      );
+    case 'height':
+      return copy.sort(
+        (a, b) => b.height - a.height || b.width * b.height - a.width * a.height,
+      );
+    case 'width':
+      return copy.sort(
+        (a, b) => b.width - a.width || b.width * b.height - a.width * a.height,
+      );
+    case 'perimeter':
+      return copy.sort(
+        (a, b) =>
+          b.width + b.height - (a.width + a.height) ||
+          b.width * b.height - a.width * a.height,
+      );
+    case 'area':
+    default:
+      return copy.sort((a, b) => b.width * b.height - a.width * a.height);
+  }
+}
+
+function applyPreferredOrientation(
+  items: PackableItem[],
+  sheetW: number,
+  sheetH: number,
+  prefer: 'landscape' | 'portrait' | 'none' = 'none',
 ): PackableItem[] {
-    // أخذ 30% من العناصر من الأب الأول (على الأقل عنصر واحد)
-    const segmentSize = Math.max(1, Math.floor(parent1.length * 0.3));
-    const start = Math.floor(Math.random() * (parent1.length - segmentSize));
-    const childPart = parent1.slice(start, start + segmentSize);
-    
-    // إنشاء مجموعة من المعرفات المحددة
-    const selectedIds = new Set(childPart.map(item => item.id));
-    
-    // أخذ العناصر المتبقية من الأب الثاني مع احتمال التدوير
-    const remainingFromParent2 = parent2
-        .filter(item => !selectedIds.has(item.id))
-        .map(item => {
-            const shouldRotate = Math.random() > 0.5 && 
-                              item.height <= materialWidth && 
-                              item.width <= materialHeight;
-            return shouldRotate 
-                ? { ...item, width: item.height, height: item.width }
-                : item;
-        });
-    
-    // دمج النتائج مع التحقق من التكرار
-    const result = [...childPart, ...remainingFromParent2];
-    const uniqueIds = new Set(result.map(item => item.id));
-    
-    if (uniqueIds.size !== result.length) {
-        console.warn('تم اكتشاف معرفات مكررة بعد التهجين');
-        return result.filter((item, index, self) =>
-            index === self.findIndex(i => i.id === item.id)
-        );
+  if (prefer === 'none') {
+    return items.map((item) => ({ ...item }));
+  }
+
+  return items.map((item) => {
+    const isLandscape = item.width >= item.height;
+    const wantLandscape = prefer === 'landscape';
+    if (isLandscape === wantLandscape) {
+      return { ...item };
     }
-    
-    return result;
+    if (fits(item.height, item.width, sheetW, sheetH)) {
+      return { ...item, width: item.height, height: item.width };
+    }
+    return { ...item };
+  });
 }
 
-function shuffleWithPriority(items: PackableItem[]): PackableItem[] {
-    return [...items]
-        .sort((a, b) => (b.width * b.height) - (a.width * a.height))
-        .map((item, i, arr) => 
-            i > 0 && Math.random() > 0.7 && 
-            (arr[i-1].width * arr[i-1].height) === (item.width * item.height)
-                ? [arr[i], arr[i-1]]
-                : [item, arr[i-1]]
-        )
-        .flat()
-        .filter(Boolean);
-}
+/**
+ * Bottom-Left Fill on a SINGLE sheet (Maximal Rectangles free-list).
+ * Remaining pieces that do not fit stay unpacked.
+ */
+function packBottomLeftFillSingle(
+  sheetW: number,
+  sheetH: number,
+  items: PackableItem[],
+  allowRotation: boolean,
+): { packedItems: PackedItem[]; unpacked: PackableItem[] } {
+  type FreeRect = { x: number; y: number; width: number; height: number };
 
-function runGlassCuttingAlgorithm(width: number, height: number, packableItems: PackableItem[]): any {
-    let materialWidth = width;
-    let materialHeight = height;
-    
-    if (materialHeight > materialWidth) {
-        [materialWidth, materialHeight] = [materialHeight, materialWidth];
+  let freeRects: FreeRect[] = [{ x: 0, y: 0, width: sheetW, height: sheetH }];
+  const packedItems: PackedItem[] = [];
+  const unpacked: PackableItem[] = [];
+
+  const findBottomLeft = (
+    w: number,
+    h: number,
+  ): { x: number; y: number } | null => {
+    let best: { x: number; y: number } | null = null;
+    for (const fr of freeRects) {
+      if (w <= fr.width && h <= fr.height) {
+        if (
+          !best ||
+          fr.y < best.y ||
+          (fr.y === best.y && fr.x < best.x)
+        ) {
+          best = { x: fr.x, y: fr.y };
+        }
+      }
+    }
+    return best;
+  };
+
+  const splitOnOverlap = (fr: FreeRect, used: FreeRect): FreeRect[] => {
+    if (
+      used.x >= fr.x + fr.width ||
+      used.x + used.width <= fr.x ||
+      used.y >= fr.y + fr.height ||
+      used.y + used.height <= fr.y
+    ) {
+      return [fr];
     }
 
-    const config = { iterations: 3000, populationSize: 500, mutationChance: 0.4, crossoverChance: 0.85, fittestAlwaysSurvives: true, eliteCount: 5 };
+    const results: FreeRect[] = [];
+    if (used.x > fr.x) {
+      results.push({ x: fr.x, y: fr.y, width: used.x - fr.x, height: fr.height });
+    }
+    if (used.x + used.width < fr.x + fr.width) {
+      results.push({
+        x: used.x + used.width,
+        y: fr.y,
+        width: fr.x + fr.width - (used.x + used.width),
+        height: fr.height,
+      });
+    }
+    if (used.y > fr.y) {
+      results.push({ x: fr.x, y: fr.y, width: fr.width, height: used.y - fr.y });
+    }
+    if (used.y + used.height < fr.y + fr.height) {
+      results.push({
+        x: fr.x,
+        y: used.y + used.height,
+        width: fr.width,
+        height: fr.y + fr.height - (used.y + used.height),
+      });
+    }
+    return results.filter((r) => r.width > 0 && r.height > 0);
+  };
 
-   let population: PackableItem[][] = [];
-           for (let i = 0; i < config.populationSize; i++) {
-               const individual = packableItems.map(item => {
-                   const shouldRotate = item.height > item.width && 
-                                      item.width <= height && 
-                                      item.height <= width;
-                   return shouldRotate 
-                       ? { ...item, width: item.height, height: item.width } 
-                       : item;
-               });
-               
-               population.push(shuffleWithPriority(individual));
-           }
-       
-           const calculateFitness = (chromosome: PackableItem[]) => {
-               const uniqueItems = chromosome.filter((item, index, self) =>
-                   index === self.findIndex(i => i.id === item.id)
-               );
-               
-               if (uniqueItems.length !== chromosome.length) {
-                   return -Infinity; // عقوبة شديدة للعناصر المكررة
-               }
-       
-               const packer = new MaxRectsPacker(width, height, 1, {
-                   smart: true,
-                   pot: true,
-                   square: false
-               });
-               
-               // ترتيب حسب المساحة تنازلياً لتحسين التعبئة
-               const sorted = [...chromosome].sort((a, b) => 
-                   (b.width * b.height) - (a.width * a.height));
-               
-               const rectangles = sorted.map(item => {
-                   const rect = new Rectangle(item.width, item.height);
-                   rect.data = item;
-                   return rect;
-               });
-               
-               packer.addArray(rectangles);
-               
-               if (!packer.bins[0]) return 0;
-               
-               let packedArea = 0;
-               let outOfBounds = false;
-               let wastedSpace = 0;
-               let usableGaps = 0;
-               const binArea = width * height;
-           
-       
-               packer.bins[0].rects.forEach(rect => {
-                   // التحقق من الحدود
-                   if (rect.x + rect.width > width || rect.y + rect.height > height) {
-                       outOfBounds = true;
-                       return;
-                   }
-                   
-                   packedArea += rect.area();
-                   
-                   // حساب الفراغات القابلة للاستخدام
-                   const rightSpace = width - (rect.x + rect.width);
-                   const bottomSpace = height - (rect.y + rect.height);
-                   
-                   if (rightSpace >= 20) usableGaps++;
-                   if (bottomSpace >= 19) usableGaps++;
-               });
-           
-               // حساب المساحة المهدرة
-               wastedSpace = binArea - packedArea;
-               
-               wastedSpace = binArea - packedArea - (usableGaps * 20 * 19 * 0.5);
-       
-               // معاملات العقاب والمكافأة
-               const outOfBoundsPenalty = outOfBounds ? 0.5 : 1;
-               const gapBonus = 1 + (usableGaps * 0.05);
-               
-               return (packedArea / binArea) * outOfBoundsPenalty * gapBonus - (wastedSpace / binArea);
-           };
-       
-           // دالة التحول
-           const mutate = (chromosome: PackableItem[]) => {
-               const mutated = [...chromosome];
-               
-               if (Math.random() < config.mutationChance) {
-                   // تبديل عنصرين عشوائيين
-                   const i1 = Math.floor(Math.random() * mutated.length);
-                   const i2 = Math.floor(Math.random() * mutated.length);
-                   [mutated[i1], mutated[i2]] = [mutated[i2], mutated[i1]];
-                   
-                   // تدوير عنصر عشوائي
-                   if (Math.random() < 0.5) {
-                       const idx = Math.floor(Math.random() * mutated.length);
-                       const item = mutated[idx];
-                       if (item.height <= width && item.width <= height) {
-                           mutated[idx] = { ...item, width: item.height, height: item.width };
-                       }
-                   }
-                   
-                   // نقل العناصر الكبيرة إلى المقدمة
-                   if (Math.random() < 0.3) {
-                       const largeItems = mutated
-                           .map((item, index) => ({index, area: item.width * item.height}))
-                           .sort((a, b) => b.area - a.area);
-                       
-                       if (largeItems.length > 0) {
-                           const [largeItem] = largeItems;
-                           const [item] = mutated.splice(largeItem.index, 1);
-                           mutated.unshift(item);
-                       }
-                   }
-               }
-               
-               return mutated;
-           };
-           
-           // الحلقة التطورية
-           let bestSolution: PackableItem[] = [];
-           let bestFitness = -Infinity;
-           let stagnationCount = 0;
-       
-           for (let gen = 0; gen < config.iterations; gen++) {
-               // تقييم المجتمع
-               const scored = population.map(chromosome => ({
-                   entity: chromosome,
-                   fitness: calculateFitness(chromosome)
-               })).sort((a, b) => b.fitness - a.fitness);
-       
-               // التحقق من أفضل حل جديد
-               if (scored[0].fitness > bestFitness) {
-                   bestFitness = scored[0].fitness;
-                   bestSolution = scored[0].entity;
-                   stagnationCount = 0;
-               } else {
-                   stagnationCount++;
-               }
-       
-               // خروج مبكر إذا لم يكن هناك تحسن
-               if (stagnationCount > 50) break;
-       
-               // إنشاء جيل جديد
-               const newPopulation: PackableItem[][] = [];
-               
-               // الاحتفاظ بالنخبة
-               if (config.fittestAlwaysSurvives) {
-                   newPopulation.push(...scored.slice(0, config.eliteCount).map(s => s.entity));
-               }
-       
-               // ملء بقية المجتمع
-               while (newPopulation.length < config.populationSize) {
-                   let child: PackableItem[];
-                   
-                   if (Math.random() < config.crossoverChance) {
-                       const parent1 = Select1.Tournament2.call(
-                           { optimize: Genetic.Optimize.Maximize }, scored);
-                       const parent2 = Select1.Tournament2.call(
-                           { optimize: Genetic.Optimize.Maximize }, scored);
-                       child = crossover(parent1, parent2, width, height);
-                   } else {
-                       child = Select1.Tournament2.call(
-                           { optimize: Genetic.Optimize.Maximize }, scored);
-                   }
-                   
-                   newPopulation.push(mutate(child));
-               }
-               
-               population = newPopulation;
-           }
-       
-           // التعبئة النهائية مع أفضل حل
-           const finalPacker = new MaxRectsPacker(width, height, 1, {
-               smart: true,
-               pot: true,
-               square: true
-           });
-           
-           // التأكد من عدم وجود تكرار في الحل النهائي
-           const uniqueBestSolution = bestSolution.filter((item, index, self) =>
-               index === self.findIndex(i => i.id === item.id)
-           );
-           
-           finalPacker.addArray(uniqueBestSolution.map(item => {
-               const rect = new Rectangle(item.width, item.height);
-               rect.data = item;
-               return rect;
-           }));
-       
-           // إعداد النتائج النهائية
-           const packedItems = finalPacker.bins[0]?.rects
-               .filter(rect => 
-                   rect.x + rect.width <= width && 
-                   rect.y + rect.height <= height)
-               .map(rect => ({
-                   id: rect.data.id,
-                   width: rect.width,
-                   height: rect.height,
-                   x: rect.x,
-                   y: rect.y,
-               })) || [];
-       
-           const packedArea = packedItems.reduce((sum, item) => 
-               sum + (item.width * item.height), 0);
-           
-           const packedIds = new Set(packedItems.map(p => p.id));
-           const unpackedItems = packableItems.filter(item => !packedIds.has(item.id));
-       
-    return {
-        materialDimensions: { width, height },
-        packedItems,
-        unpackedItems,
-        utilization: packedArea / (width * height),
+  const pruneFreeRects = () => {
+    freeRects = freeRects.filter(
+      (a, i) =>
+        !freeRects.some(
+          (b, j) =>
+            i !== j &&
+            a.x >= b.x &&
+            a.y >= b.y &&
+            a.x + a.width <= b.x + b.width &&
+            a.y + a.height <= b.y + b.height,
+        ),
+    );
+  };
+
+  const place = (item: PackableItem, w: number, h: number, rotated: boolean) => {
+    const pos = findBottomLeft(w, h);
+    if (!pos) return false;
+
+    const used: FreeRect = {
+      x: pos.x,
+      y: pos.y,
+      width: Math.min(w + PADDING, sheetW - pos.x),
+      height: Math.min(h + PADDING, sheetH - pos.y),
     };
+
+    freeRects = freeRects.flatMap((fr) => splitOnOverlap(fr, used));
+    pruneFreeRects();
+
+    packedItems.push({
+      id: item.id,
+      width: w,
+      height: h,
+      x: pos.x,
+      y: pos.y,
+      rotated,
+    });
+    return true;
+  };
+
+  for (const item of items) {
+    const orientations: Array<{ w: number; h: number; rotated: boolean }> = [
+      { w: item.width, h: item.height, rotated: false },
+    ];
+    if (
+      allowRotation &&
+      item.width !== item.height &&
+      fits(item.height, item.width, sheetW, sheetH)
+    ) {
+      orientations.push({ w: item.height, h: item.width, rotated: true });
+    }
+
+    let bestChoice: {
+      w: number;
+      h: number;
+      rotated: boolean;
+      x: number;
+      y: number;
+    } | null = null;
+
+    for (const ori of orientations) {
+      if (!fits(ori.w, ori.h, sheetW, sheetH)) continue;
+      const pos = findBottomLeft(ori.w, ori.h);
+      if (!pos) continue;
+      if (
+        !bestChoice ||
+        pos.y < bestChoice.y ||
+        (pos.y === bestChoice.y && pos.x < bestChoice.x)
+      ) {
+        bestChoice = { ...ori, x: pos.x, y: pos.y };
+      }
+    }
+
+    if (bestChoice && place(item, bestChoice.w, bestChoice.h, bestChoice.rotated)) {
+      continue;
+    }
+    unpacked.push(item);
+  }
+
+  return { packedItems, unpacked };
 }
 
-parentPort.on('message', (payload) => {
-    try {
-        const resultData = runGlassCuttingAlgorithm(payload.width, payload.height, payload.packableItems);
-        parentPort.postMessage({ status: 'completed', data: { ...resultData, originalMaterialId: payload.originalMaterialId } });
-    } catch (error) {
-        parentPort.postMessage({ status: 'error', error: error.message });
+/**
+ * Maximal Rectangles packer — only the first sheet is kept (API/UI is single-sheet).
+ */
+function packWithMaxRectsSingle(
+  sheetW: number,
+  sheetH: number,
+  items: PackableItem[],
+  strategy: PackStrategy,
+): { packedItems: PackedItem[]; unpacked: PackableItem[] } {
+  const oriented = applyPreferredOrientation(
+    items,
+    sheetW,
+    sheetH,
+    strategy.preferOrientation ?? 'none',
+  );
+  const sorted = sortItems(oriented, strategy.sort);
+
+  const packer = new MaxRectsPacker(sheetW, sheetH, PADDING, {
+    smart: false,
+    pot: false,
+    square: false,
+    allowRotation: strategy.allowRotation,
+    logic: strategy.logic,
+  });
+
+  packer.addArray(
+    sorted.map((item) => {
+      const rect = new Rectangle(item.width, item.height);
+      rect.data = item;
+      (rect as any).allowRotation = strategy.allowRotation;
+      return rect;
+    }),
+  );
+
+  const firstBin = packer.bins[0];
+  const packedItems: PackedItem[] = [];
+  const packedIds = new Set<any>();
+
+  if (firstBin) {
+    for (const rect of firstBin.rects) {
+      if (
+        rect.oversized ||
+        rect.x + rect.width > sheetW ||
+        rect.y + rect.height > sheetH
+      ) {
+        continue;
+      }
+      packedIds.add(rect.data.id);
+      packedItems.push({
+        id: rect.data.id,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y,
+        rotated: Boolean(rect.rot),
+      });
     }
-});
+  }
+
+  const unpacked = items.filter((item) => !packedIds.has(item.id));
+  return { packedItems, unpacked };
+}
+
+function scoreSingleSheet(packedItems: PackedItem[]): number {
+  const packedArea = packedItems.reduce((s, i) => s + i.width * i.height, 0);
+  // Prefer more area packed, then more pieces
+  return packedArea * 1000 + packedItems.length;
+}
+
+function runGlassCuttingAlgorithm(
+  rawWidth: number,
+  rawHeight: number,
+  packableItems: PackableItem[],
+): any {
+  const width = toNumber(rawWidth);
+  const height = toNumber(rawHeight);
+
+  const items = packableItems
+    .map((item) => ({
+      id: item.id,
+      width: toNumber(item.width),
+      height: toNumber(item.height),
+    }))
+    .filter(
+      (item) =>
+        fits(item.width, item.height, width, height) ||
+        fits(item.height, item.width, width, height),
+    );
+
+  const tooBig = packableItems
+    .map((item) => ({
+      id: item.id,
+      width: toNumber(item.width),
+      height: toNumber(item.height),
+    }))
+    .filter(
+      (item) =>
+        !fits(item.width, item.height, width, height) &&
+        !fits(item.height, item.width, width, height),
+    );
+
+  if (items.length === 0) {
+    return {
+      materialDimensions: { width, height },
+      packedItems: [],
+      unpackedItems: packableItems.map((item) => ({
+        id: item.id,
+        width: toNumber(item.width),
+        height: toNumber(item.height),
+      })),
+      utilization: 0,
+    };
+  }
+
+  const strategies: PackStrategy[] = [
+    {
+      name: 'maxrects-area-rotate',
+      sort: 'area',
+      allowRotation: true,
+      logic: PACKING_LOGIC.MAX_AREA,
+    },
+    {
+      name: 'maxrects-edge-rotate',
+      sort: 'area',
+      allowRotation: true,
+      logic: PACKING_LOGIC.MAX_EDGE,
+    },
+    {
+      name: 'maxrects-maxside-rotate',
+      sort: 'maxSide',
+      allowRotation: true,
+      logic: PACKING_LOGIC.MAX_AREA,
+    },
+    {
+      name: 'maxrects-height-rotate',
+      sort: 'height',
+      allowRotation: true,
+      logic: PACKING_LOGIC.MAX_EDGE,
+    },
+    {
+      name: 'maxrects-area-landscape',
+      sort: 'area',
+      allowRotation: true,
+      logic: PACKING_LOGIC.MAX_AREA,
+      preferOrientation: 'landscape',
+    },
+    {
+      name: 'maxrects-area-portrait',
+      sort: 'area',
+      allowRotation: true,
+      logic: PACKING_LOGIC.MAX_AREA,
+      preferOrientation: 'portrait',
+    },
+  ];
+
+  let best: {
+    packedItems: PackedItem[];
+    unpacked: PackableItem[];
+    strategy: string;
+    score: number;
+  } | null = null;
+
+  for (const strategy of strategies) {
+    const result = packWithMaxRectsSingle(width, height, items, strategy);
+    const score = scoreSingleSheet(result.packedItems);
+    if (!best || score > best.score) {
+      best = { ...result, strategy: strategy.name, score };
+    }
+  }
+
+  for (const sort of ['area', 'maxSide', 'height'] as SortMode[]) {
+    for (const prefer of ['none', 'landscape', 'portrait'] as const) {
+      const sorted = sortItems(
+        applyPreferredOrientation(items, width, height, prefer),
+        sort,
+      );
+      const result = packBottomLeftFillSingle(width, height, sorted, true);
+      const score = scoreSingleSheet(result.packedItems);
+      const name = `blf-${sort}-${prefer}`;
+      if (!best || score > best.score) {
+        best = { ...result, strategy: name, score };
+      }
+    }
+  }
+
+  const packedItems = best!.packedItems;
+  const packedArea = packedItems.reduce((s, i) => s + i.width * i.height, 0);
+  const unpackedItems = [...tooBig, ...best!.unpacked];
+
+  // Same response shape as before (single sheet for the material-grid UI)
+  return {
+    materialDimensions: { width, height },
+    packedItems: packedItems.map(({ id, width: w, height: h, x, y }) => ({
+      id,
+      width: w,
+      height: h,
+      x,
+      y,
+    })),
+    unpackedItems: unpackedItems.map(({ id, width: w, height: h }) => ({
+      id,
+      width: w,
+      height: h,
+    })),
+    utilization: packedArea / (width * height),
+  };
+}
+
+export { runGlassCuttingAlgorithm };
+
+if (parentPort) {
+  parentPort.on('message', (payload) => {
+    try {
+      const resultData = runGlassCuttingAlgorithm(
+        payload.width,
+        payload.height,
+        payload.packableItems,
+      );
+      parentPort.postMessage({
+        status: 'completed',
+        data: {
+          ...resultData,
+          originalMaterialId: payload.originalMaterialId,
+        },
+      });
+    } catch (error) {
+      parentPort.postMessage({
+        status: 'error',
+        error: (error as Error).message,
+      });
+    }
+  });
+}
